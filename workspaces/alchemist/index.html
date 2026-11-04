@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PBR Alchemist Studio</title>
+  <link rel="stylesheet" href="css/app.css">
+  <script src="/vendor/jszip/dist/jszip.min.js"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "/vendor/three/build/three.module.js",
+      "three/addons/": "/vendor/three/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+
+  <!-- ==================== HEADER ==================== -->
+  <header class="app-header">
+    <div class="brand-section">
+      <img src="icon.png" alt="PBR Alchemist" class="brand-icon">
+      <div class="brand-title">PBR Alchemist Studio</div>
+      <span class="badge-pro">PRO v1.0</span>
+    </div>
+
+    <!-- Center: Presets & Samples -->
+    <div class="header-controls">
+      <!-- Resolution -->
+      <div class="control-group">
+        <span class="control-label">Resolution</span>
+        <div class="pill-group" id="resPillGroup">
+          <button class="pill-btn" data-res="1024">1024</button>
+          <button class="pill-btn active" data-res="2048">2048</button>
+          <button class="pill-btn" data-res="4096">4096</button>
+        </div>
+      </div>
+
+      <!-- Presets -->
+      <div class="control-group">
+        <span class="control-label">Preset</span>
+        <select id="presetSelect" class="input-field" style="width: 140px; padding: 3px 6px;">
+          <option value="custom">-- Manual --</option>
+          <option value="concrete" selected>Raw Concrete</option>
+          <option value="wood">Rustic Wood</option>
+          <option value="stone">Pavement & Stone</option>
+          <option value="metal">Brushed Metal</option>
+          <option value="ceramic">Ceramic Tiles</option>
+        </select>
+      </div>
+
+      <!-- Sample photo quick chips -->
+      <div class="control-group">
+        <span class="control-label">Samples</span>
+        <div class="samples-bar">
+          <div class="sample-chip active" data-sample="sample_concrete.jpg" title="Concrete photo">
+            <img src="samples/sample_concrete.jpg" class="sample-thumb" alt="Concrete">
+            <span>Concrete</span>
+          </div>
+          <div class="sample-chip" data-sample="sample_wood.jpg" title="Oak Wood photo">
+            <img src="samples/sample_wood.jpg" class="sample-thumb" alt="Wood">
+            <span>Wood</span>
+          </div>
+          <div class="sample-chip" data-sample="sample_stone.jpg" title="Stone Pavers photo">
+            <img src="samples/sample_stone.jpg" class="sample-thumb" alt="Stone">
+            <span>Stone</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Import Button -->
+    <div style="display: flex; gap: 8px;">
+      <input type="file" id="fileInput" accept="image/png, image/jpeg, image/webp" style="display: none;">
+      <button id="btnImport" class="btn-import">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Import Photo
+      </button>
+    </div>
+  </header>
+
+  <!-- ==================== SPLIT WORKSPACE ==================== -->
+  <main class="workspace">
+    <!-- LEFT: 2D Inspector -->
+    <section class="inspector-panel">
+      <div class="panel-header">
+        <div class="tabs-nav" id="inspectorTabs">
+          <button class="tab-btn active" data-map="baseColor">
+            <span class="tab-indicator" style="background:#548aff;"></span>BaseColor
+          </button>
+          <button class="tab-btn" data-map="normal">
+            <span class="tab-indicator" style="background:#9d5bf0;"></span>Normal Map
+          </button>
+          <button class="tab-btn" data-map="roughness">
+            <span class="tab-indicator" style="background:#a0aec0;"></span>Roughness
+          </button>
+          <button class="tab-btn" data-map="height">
+            <span class="tab-indicator" style="background:#e2e8f0;"></span>Height
+          </button>
+          <button class="tab-btn" data-map="ambientOcclusion">
+            <span class="tab-indicator" style="background:#4a5568;"></span>AO
+          </button>
+          <button class="tab-btn" data-map="grid2x2">
+            <span class="tab-indicator" style="background:#3ad6c5;"></span>2x2 Grid
+          </button>
+          <button class="tab-btn" data-map="split4">
+            <span class="tab-indicator" style="background:#f59e0b;"></span>4-Channel Split
+          </button>
+        </div>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <span id="canvasDimBadge" class="info-tag">2048 × 2048</span>
+        </div>
+      </div>
+
+      <!-- Canvas interactive viewport -->
+      <div class="canvas-container" id="canvasContainer">
+        <canvas id="inspectorCanvas"></canvas>
+        <div class="seam-guide" id="seamGuide"></div>
+
+        <!-- Floating 2D Controls -->
+        <div class="floating-toolbar">
+          <button class="tool-btn" id="btnZoomIn" title="Zoom in">🔍+</button>
+          <button class="tool-btn" id="btnZoomOut" title="Zoom out">🔍-</button>
+          <button class="tool-btn" id="btnZoom100" title="1:1 Scale">1:1</button>
+          <button class="tool-btn" id="btnZoomFit" title="Fit to view">Fit</button>
+          <div style="width: 1px; height: 14px; background: var(--border-medium);"></div>
+          <button class="tool-btn active" id="btnToggleSeamGuide" title="Toggle central seam guide">
+            <span>✛ Seam Guide</span>
+          </button>
+          <span class="info-tag" id="zoomLevelTag">100%</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: 3D Viewport -->
+    <section class="viewport-panel">
+      <!-- 3D Top Tools -->
+      <div class="viewport-top-tools">
+        <!-- Mesh selector -->
+        <div class="tool-dock">
+          <span class="control-label" style="margin-right: 4px;">Geometry</span>
+          <div class="pill-group" id="meshPillGroup">
+            <button class="pill-btn active" data-mesh="sphere">Sphere</button>
+            <button class="pill-btn" data-mesh="cube">Cube</button>
+            <button class="pill-btn" data-mesh="plane">Plane</button>
+            <button class="pill-btn" data-mesh="cylinder">Cylinder</button>
+          </div>
+        </div>
+
+        <!-- Viewport settings -->
+        <div class="tool-dock">
+          <button class="tool-btn" id="btnTurntableLight" title="Continuous studio light rotation (highlights Normal Map relief)">
+            ☀️ Light Turntable
+          </button>
+          <button class="tool-btn" id="btnAutoRotateMesh" title="Turntable rotation of 3D mesh">
+            🔄 Object Turntable
+          </button>
+          <button class="tool-btn" id="btnWireframe" title="Toggle wireframe overlay">
+            🕸️ Wireframe
+          </button>
+          <button class="tool-btn" id="btnResetCam" title="Reset camera view">
+            🎯 Reset Camera
+          </button>
+        </div>
+      </div>
+
+      <!-- Three.js Canvas Container -->
+      <div id="threeViewport"></div>
+
+      <!-- 3D Bottom Tools (Sliders overlay) -->
+      <div class="viewport-bottom-tools">
+        <div class="tool-dock" style="gap: 12px;">
+          <!-- UV Repeat -->
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="control-label">UV Tiling</span>
+            <input type="range" id="sliderUVRepeat" min="1" max="5" step="0.5" value="1" style="width: 80px;">
+            <span class="slider-val" id="valUVRepeat">1.0x</span>
+          </div>
+
+          <!-- Displacement scale -->
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="control-label">3D Displacement</span>
+            <input type="range" id="sliderDisplacement" min="0" max="0.30" step="0.01" value="0.04" style="width: 80px;">
+            <span class="slider-val" id="valDisplacement">0.04</span>
+          </div>
+
+          <!-- Metalness -->
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="control-label">Metallic</span>
+            <input type="range" id="sliderMetalness" min="0" max="1" step="0.05" value="0.0" style="width: 70px;">
+            <span class="slider-val" id="valMetalness">0.00</span>
+          </div>
+        </div>
+
+        <div class="tool-dock">
+          <span class="info-tag" style="color: var(--accent-cyan);">PBR Physical Shading (Three.js)</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== BOTTOM CONTROL RACK & EXPORT ==================== -->
+  <footer class="bottom-dock">
+    <div class="dock-header-tabs">
+      <div class="dock-tabs">
+        <button class="dock-tab active" data-dock="controls">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          PBR Settings & Seamless Tiling
+        </button>
+      </div>
+
+      <div style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">
+        GPU Canvas 2D Compute / 60 FPS
+      </div>
+    </div>
+
+    <!-- Dock Content Columns -->
+    <div class="dock-content">
+
+      <!-- Column 1: Seamless & Delighter -->
+      <div class="control-col">
+        <div class="col-title">
+          <span>1. Seamless Tiling & Delight</span>
+          <span class="badge">Preprocessing</span>
+        </div>
+
+        <div class="toggle-row">
+          <span>Enable Seamless Algorithm</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="chkSeamless" checked>
+            <span class="slider-switch"></span>
+          </label>
+        </div>
+
+        <div class="form-row">
+          <div class="slider-label-row">
+            <span class="slider-name">Edge Blend Softness</span>
+            <span class="slider-val" id="valSmoothness">35 %</span>
+          </div>
+          <input type="range" id="sliderSmoothness" min="0" max="100" value="35">
+        </div>
+
+        <div class="form-row" style="margin-top: 4px;">
+          <div class="slider-label-row">
+            <span class="slider-name">Delight (High-pass Filter)</span>
+            <span class="slider-val" id="valDelighter">40 %</span>
+          </div>
+          <input type="range" id="sliderDelighter" min="0" max="100" value="40">
+        </div>
+
+        <div class="col-title" style="margin-top: 6px;">
+          <span>BaseColor (Albedo)</span>
+        </div>
+
+        <div class="form-row">
+          <div class="slider-label-row">
+            <span class="slider-name">Brightness / Contrast</span>
+            <span class="slider-val" id="valBrightnessContrast">0 / 0</span>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <input type="range" id="sliderBrightness" min="-60" max="60" value="0" title="Luminosité">
+            <input type="range" id="sliderContrast" min="-60" max="60" value="0" title="Contraste">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="slider-label-row">
+            <span class="slider-name">Saturation</span>
+            <span class="slider-val" id="valSaturation">100 %</span>
+          </div>
+          <input type="range" id="sliderSaturation" min="0" max="200" value="100">
+        </div>
+      </div>
+
+      <!-- Column 2: Normal Map & Relief -->
+      <div class="control-col">
+        <div class="col-title">
+          <span>2. Normal Map (Sobel 3×3)</span>
+          <span class="badge">Relief</span>
+        </div>
+
+        <div class="form-row">
+          <div class="slider-label-row">
+            <span class="slider-name">Bump Intensity</span>
+            <span class="slider-val" id="valNormalStrength">2.5×</span>
+          </div>
+          <input type="range" id="sliderNormalStrength" min="0.1" max="10.0" step="0.1" value="2.5">
+        </div>
+
+        <div class="form-row">
+          <div class="slider-label-row">
+            <span class="slider-name">Blur Smoothing</span>
+            <span class="slider-val" id="valNormalBlur">1.0 px</span>
+          </div>
+          <input type="range" id="sliderNormalBlur" min="0" max="8.0" step="0.5" value="1.0">
+        </div>
+
+        <div class="toggle-row" style="margin-top: 2px;">
+          <span>Invert Y-Axis (DirectX / OpenGL)</span>
+          <div class="pill-group" id="normalAxeGroup">
+            <button class="pill-btn active" id="btnNormOpenGL">OpenGL (+Y)</button>
+            <button class="pill-btn" id="btnNormDirectX">DirectX (-Y)</button>
+          </div>
+        </div>
+
+        <div class="col-title" style="margin-top: 6px;">
+          <span>Ambient Occlusion (AO)</span>
+        </div>
+
+        <div class="form-row">
+          <div class="slider-label-row">
+            <span class="slider-name">Cavity Shadow Intensity</span>
+            <span class="slider-val" id="valAOIntensity">65 %</span>
+          </div>
+          <input type="range" id="sliderAOIntensity" min="0" max="100" value="65">
+        </div>
+
+        <div class="form-row">
+          <div class="slider-label-row">
+            <span class="slider-name">Cavity Radius</span>
+            <span class="slider-val" id="valAORadius">6 px</span>
+          </div>
+          <input type="range" id="sliderAORadius" min="1" max="16" value="6">
+        </div>
+      </div>
+
+      <!-- Column 3: Roughness & Height -->
+      <div class="control-col">
+        <div class="col-title">
+          <span>3. Height & Displacement</span>
+          <span class="badge">Displacement</span>
+        </div>
+
+        <div class="form-row">
+          <div class="slider-label-row">
+            <span class="slider-name">Levels Threshold (Black / White)</span>
+            <span class="slider-val" id="valHeightLevels">0 / 255</span>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <input type="range" id="sliderHeightMin" min="0" max="120" value="0" title="Seuil Noir">
+            <input type="range" id="sliderHeightMax" min="130" max="255" value="255" title="Seuil Blanc">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="slider-label-row">
+            <span class="slider-name">Gamma Contrast / Blur</span>
+            <span class="slider-val" id="valHeightGammaBlur">1.0 / 1.5px</span>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <input type="range" id="sliderHeightGamma" min="0.3" max="2.5" step="0.1" value="1.0" title="Gamma">
+            <input type="range" id="sliderHeightBlur" min="0" max="8.0" step="0.5" value="1.5" title="Lissage">
+          </div>
+        </div>
+
+        <div class="toggle-row">
+          <span>Invert Height (Cavity / Bump)</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="chkHeightInvert">
+            <span class="slider-switch"></span>
+          </label>
+        </div>
+
+        <div class="col-title" style="margin-top: 6px;">
+          <span>Roughness (Microfacet)</span>
+        </div>
+
+        <div class="form-row">
+          <div class="slider-label-row">
+            <span class="slider-name">Base Roughness / Contrast</span>
+            <span class="slider-val" id="valRoughnessBase">0.60 / 1.0</span>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <input type="range" id="sliderRoughnessBase" min="0" max="1" step="0.05" value="0.60" title="Valeur de base">
+            <input type="range" id="sliderRoughnessContrast" min="0" max="2" step="0.1" value="1.0" title="Contraste">
+          </div>
+        </div>
+
+        <div class="toggle-row">
+          <span>Invert (Glossy vs Matte)</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="chkRoughnessInvert">
+            <span class="slider-switch"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Column 4: Automated Export Section -->
+      <div class="control-col export-col">
+        <div class="col-title" style="color: #ffffff;">
+          <span>4. Automated PBR Export</span>
+          <span class="badge" style="color: var(--accent-blue);">PNG 16-bit Ready</span>
+        </div>
+
+        <!-- Material Name -->
+        <div class="form-row">
+          <span class="control-label">Material Name</span>
+          <input type="text" id="exportMaterialName" class="input-field" value="Beton_Brut_01" placeholder="Ex: Beton_Brut_01">
+        </div>
+
+        <!-- Category -->
+        <div class="form-row">
+          <span class="control-label">Category</span>
+          <input type="text" id="exportCategory" class="input-field" value="Concrete" list="categoryList" placeholder="Ex: Concrete, Wood, Stone, Metal...">
+          <datalist id="categoryList">
+            <option value="Concrete">Béton / Concrete</option>
+            <option value="Wood">Bois / Wood</option>
+            <option value="Stone">Pierre / Stone</option>
+            <option value="Metal">Métal / Metal</option>
+            <option value="Brick">Brique / Brick</option>
+            <option value="Ceramic">Céramique / Carrelage / Ceramic</option>
+            <option value="Fabric">Tissu / Fabric</option>
+            <option value="Leather">Cuir / Leather</option>
+            <option value="Nature">Nature / Végétation</option>
+            <option value="Paint">Peinture / Paint</option>
+            <option value="Plaster">Plâtre / Plaster</option>
+            <option value="Plastic">Plastique / Plastic</option>
+            <option value="Others">Autres / Others</option>
+          </datalist>
+        </div>
+
+        <!-- Destination Directory Picker -->
+        <div class="form-row">
+          <span class="control-label">Destination Folder</span>
+          <div class="dir-picker-row">
+            <input type="text" id="exportDirPath" class="input-field dir-input" readonly placeholder="Default library folder...">
+            <button id="btnBrowseDir" class="btn-secondary">Browse...</button>
+          </div>
+        </div>
+
+        <!-- Naming convention preview -->
+        <div class="export-naming-preview">
+          <div>📄 <span id="lblBaseColorName">Beton_Brut_01_baseColor.png</span></div>
+          <div>📄 <span id="lblNormalName">Beton_Brut_01_normal.png</span></div>
+          <div>📄 <span id="lblRoughnessName">Beton_Brut_01_roughness.png</span></div>
+          <div>📄 <span id="lblHeightName">Beton_Brut_01_height.png</span></div>
+          <div>📄 <span id="lblAOName">Beton_Brut_01_ambientOcclusion.png</span></div>
+        </div>
+
+        <!-- Action buttons -->
+        
+        <!-- Direct bridge to 01. Material Library -->
+        <button id="btnSendToLibrary" class="btn-send-library" style="background: linear-gradient(135deg, #0284c7, #06b6d4); color: white; border: none; padding: 11px 14px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 6px; box-shadow: 0 4px 12px rgba(6, 182, 212, 0.35);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+          Send to Material Library
+        </button>
+
+        <button id="btnExportPack" class="btn-export-main">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Generate & Export PBR Pack
+        </button>
+
+        <div style="display: flex; gap: 8px;">
+          <button id="btnExportZip" class="btn-secondary" style="flex: 1;">
+            📦 Download ZIP
+          </button>
+          <button id="btnOpenFolder" class="btn-secondary" style="display: none;">
+            📂 Open Folder
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- ==================== DRAG & DROP OVERLAY ==================== -->
+  <div class="drop-overlay" id="dropOverlay">
+    <div class="drop-icon">📥</div>
+    <div class="drop-title">Drop Texture Photograph</div>
+    <div class="drop-desc">Supported formats: JPG, PNG, WEBP — Square auto-crop & PBR map synthesis</div>
+  </div>
+
+  <!-- ==================== TOAST NOTIFICATIONS ==================== -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- App Bootstrap Module -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

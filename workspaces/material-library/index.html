@@ -1,0 +1,2711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PBR Material Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Three.js ES Modules Import Map (100% Offline Local) -->
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/three.module.js",
+        "three/addons/": "./vendor/three/addons/",
+        "three/addons/OrbitControls.js": "./vendor/three/addons/OrbitControls.js",
+        "three/addons/GLTFLoader.js": "./vendor/three/addons/GLTFLoader.js",
+        "three/addons/OBJLoader.js": "./vendor/three/addons/OBJLoader.js",
+        "three/addons/STLLoader.js": "./vendor/three/addons/STLLoader.js",
+        "three/addons/controls/OrbitControls.js": "./vendor/three/addons/controls/OrbitControls.js",
+        "three/addons/loaders/GLTFLoader.js": "./vendor/three/addons/loaders/GLTFLoader.js",
+        "three/addons/loaders/OBJLoader.js": "./vendor/three/addons/loaders/OBJLoader.js",
+        "three/addons/loaders/STLLoader.js": "./vendor/three/addons/loaders/STLLoader.js"
+      }
+    }
+    </script>
+    <style>
+        :root {
+            --bg-base: #0e0f11;
+            --bg-surface: #141519;
+            --bg-surface-elevated: #1a1c22;
+            --bg-card: #181920;
+            --bg-card-hover: #20222a;
+            --border-subtle: #23252d;
+            --border-focus: #3b82f6;
+            --border-highlight: rgba(255, 255, 255, 0.09);
+            --text-primary: #f1f3f7;
+            --text-secondary: #9096a2;
+            --text-muted: #5e6472;
+            --accent-blue: #3b82f6;
+            --accent-blue-hover: #2563eb;
+            --accent-glow: rgba(59, 130, 246, 0.25);
+            --sidebar-width: 380px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Barre latérale d'architecture */
+        #sidebar {
+            width: var(--sidebar-width);
+            height: 100%;
+            background-color: var(--bg-surface);
+            border-right: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            z-index: 20;
+            box-shadow: 10px 0 30px rgba(0, 0, 0, 0.4);
+            position: relative;
+        }
+
+        /* En-tête Studio */
+        .studio-header {
+            padding: 18px 20px 14px 20px;
+            background: linear-gradient(180deg, rgba(26, 28, 34, 0.8) 0%, rgba(20, 21, 25, 0.6) 100%);
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .studio-title-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .studio-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 7px;
+            background: #101216;
+            border: 1px solid var(--border-highlight);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .studio-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .studio-title span {
+            color: var(--accent-blue);
+        }
+
+        .studio-subtitle {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            margin-top: 1px;
+        }
+
+        .catalog-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            padding: 3px 8px;
+            background: rgba(59, 130, 246, 0.12);
+            color: var(--accent-blue);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 4px;
+        }
+
+        /* Zone d'importation de dossier */
+        .dropzone-container {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-subtle);
+            background: rgba(14, 15, 17, 0.4);
+        }
+
+        .dropzone {
+            border: 1.5px dashed rgba(255, 255, 255, 0.16);
+            border-radius: 8px;
+            padding: 14px 12px;
+            text-align: center;
+            background: rgba(26, 28, 34, 0.35);
+            transition: all 0.25s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            border-color: var(--accent-blue);
+            background: rgba(59, 130, 246, 0.08);
+            box-shadow: 0 0 16px var(--accent-glow);
+        }
+
+        .dropzone-icon {
+            width: 26px;
+            height: 26px;
+            margin: 0 auto 6px auto;
+            color: var(--accent-blue);
+        }
+
+        .dropzone-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 0.4px;
+        }
+
+        .dropzone-sub {
+            font-size: 10.5px;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
+        .dropzone-cat-select {
+            margin-top: 9px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            justify-content: center;
+        }
+
+        .dropzone-cat-select span {
+            font-size: 10px;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .cat-dropdown {
+            background: var(--bg-surface-elevated);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+            min-width: 90px;
+            max-width: 130px;
+        }
+
+        .cat-dropdown:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .upload-feedback {
+            margin-top: 8px;
+            font-size: 11px;
+            color: #10b981;
+            display: none;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 4px 8px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .dropzone-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+        }
+
+        .dropzone-btn {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 10.5px;
+            font-weight: 600;
+            padding: 5px 10px;
+            background: var(--bg-surface-elevated);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dropzone-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--accent-blue);
+            background: rgba(59, 130, 246, 0.12);
+        }
+
+        /* Outils de filtre & recherche */
+        .filter-section {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-box svg {
+            position: absolute;
+            left: 10px;
+            width: 15px;
+            height: 15px;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--bg-surface-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            padding: 8px 10px 8px 32px;
+            font-size: 12px;
+            color: var(--text-primary);
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 8px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 14px;
+            display: none;
+        }
+
+        /* Barre des catégories */
+        .category-scroll {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-subtle) transparent;
+        }
+
+        .category-scroll::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .category-scroll::-webkit-scrollbar-thumb {
+            background: var(--border-subtle);
+            border-radius: 2px;
+        }
+
+        .cat-pill {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 12px;
+            background: var(--bg-surface-elevated);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .cat-pill:hover {
+            color: var(--text-primary);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .cat-pill.active {
+            background: var(--accent-blue);
+            color: #ffffff;
+            border-color: var(--accent-blue);
+            font-weight: 600;
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        /* Liste du catalogue */
+        #catalog {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px 16px;
+            scroll-behavior: smooth;
+        }
+
+        #catalog::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #catalog::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #catalog::-webkit-scrollbar-thumb {
+            background: #252832;
+            border-radius: 3px;
+        }
+
+        #catalog::-webkit-scrollbar-thumb:hover {
+            background: #353a48;
+        }
+
+        .category-group-header {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin: 14px 0 8px 2px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .category-group-header:first-child {
+            margin-top: 0;
+        }
+
+        .category-count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        /* Cartes de matériaux */
+        .material-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 7px;
+            padding: 10px;
+            margin-bottom: 9px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .material-card:hover {
+            background: var(--bg-card-hover);
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateY(-1px);
+        }
+
+        .material-card.active-material {
+            border-color: var(--accent-blue);
+            background: rgba(30, 42, 66, 0.45);
+            box-shadow: 0 0 14px rgba(59, 130, 246, 0.2);
+        }
+
+        .material-card.active-material::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--accent-blue);
+            border-radius: 7px 0 0 7px;
+        }
+
+        /* Vignette figée */
+        .thumb-box {
+            width: 54px;
+            height: 54px;
+            border-radius: 5px;
+            background: #090a0d;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .thumb-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            image-rendering: -webkit-optimize-contrast;
+        }
+
+        .thumb-fallback {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* Métadonnées du matériau */
+        .material-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .material-title {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 12.5px;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+
+        .channel-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3px;
+            margin-bottom: 8px;
+        }
+
+        .chan-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 8.5px;
+            font-weight: 600;
+            padding: 1px 4px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+        }
+
+        .chan-tag.bc { color: #60a5fa; background: rgba(96, 165, 250, 0.12); }
+        .chan-tag.nrm { color: #c084fc; background: rgba(192, 132, 252, 0.12); }
+        .chan-tag.rgh { color: #facc15; background: rgba(250, 204, 21, 0.12); }
+        .chan-tag.met { color: #22d3ee; background: rgba(34, 211, 238, 0.12); }
+        .chan-tag.disp { color: #f472b6; background: rgba(244, 114, 182, 0.12); }
+        .chan-tag.ao { color: #34d399; background: rgba(52, 211, 153, 0.12); }
+
+        /* Boutons d'action */
+        .btn-row {
+            display: flex;
+            gap: 5px;
+        }
+
+        .card-btn {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 5px 8px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .btn-view {
+            flex: 1.3;
+            background: var(--accent-blue);
+            color: #ffffff;
+        }
+
+        .btn-view:hover {
+            background: var(--accent-blue-hover);
+        }
+
+        .btn-rename {
+            flex: 1;
+            background: var(--bg-surface-elevated);
+            border-color: var(--border-subtle);
+            color: var(--text-secondary);
+        }
+
+        .btn-rename:hover {
+            color: var(--text-primary);
+            border-color: rgba(255, 255, 255, 0.2);
+            background: #252833;
+        }
+
+        .btn-folder {
+            flex: 1;
+            background: var(--bg-surface-elevated);
+            border-color: var(--border-subtle);
+            color: var(--text-secondary);
+        }
+
+        .btn-folder:hover {
+            color: var(--text-primary);
+            border-color: rgba(255, 255, 255, 0.2);
+            background: #252833;
+        }
+
+        /* Conteneur 3D Principal */
+        #viewport-container {
+            flex: 1;
+            height: 100vh;
+            position: relative;
+            background-color: var(--bg-base);
+        }
+
+        /* Barre d'outils flottante - Gabarits géométriques */
+        .floating-toolbar {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            background: rgba(20, 21, 26, 0.85);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--border-highlight);
+            border-radius: 30px;
+            padding: 4px 6px;
+            display: flex;
+            gap: 4px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .geom-btn {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 7px 14px;
+            border-radius: 20px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.3px;
+        }
+
+        .geom-btn svg {
+            width: 14px;
+            height: 14px;
+            stroke-width: 2;
+        }
+
+        .geom-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .geom-btn.active {
+            background: var(--accent-blue);
+            color: #ffffff;
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        /* HUD Inspecteur Matériau Actif (Haut Gauche du viewport) */
+        .active-mat-hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            background: rgba(20, 21, 26, 0.88);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--border-highlight);
+            border-radius: 8px;
+            padding: 10px 14px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            max-width: 320px;
+            pointer-events: none;
+        }
+
+        .hud-category {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent-blue);
+        }
+
+        .hud-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 2px;
+        }
+
+        .hud-maps {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9.5px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Panneau de réglages HUD (Bas Droite) */
+        .floating-controls {
+            position: absolute;
+            bottom: 24px;
+            right: 24px;
+            z-index: 10;
+            background: rgba(20, 21, 26, 0.85);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--border-highlight);
+            border-radius: 10px;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            width: 220px;
+        }
+
+        .control-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .control-label {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 10.5px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .control-label span {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-blue);
+        }
+
+        .slider-input {
+            width: 100%;
+            height: 4px;
+            background: #2a2e3a;
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        .slider-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            cursor: pointer;
+            box-shadow: 0 0 8px var(--accent-glow);
+            transition: transform 0.1s;
+        }
+
+        .slider-input::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .uv-presets {
+            display: flex;
+            gap: 4px;
+        }
+
+        .uv-btn {
+            flex: 1;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            padding: 3px 0;
+            background: var(--bg-surface-elevated);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .uv-btn:hover {
+            color: var(--text-primary);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .uv-btn.active {
+            background: var(--accent-blue);
+            color: #ffffff;
+            border-color: var(--accent-blue);
+        }
+
+        .hud-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 2px;
+        }
+
+        .hud-action-btn {
+            flex: 1;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 6px;
+            background: var(--bg-surface-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: 5px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .hud-action-btn:hover {
+            color: var(--text-primary);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .hud-action-btn.active {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent-blue);
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+
+        /* Indicateur de chargement 3D */
+        .viewport-loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 15;
+            background: rgba(14, 15, 17, 0.88);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-highlight);
+            padding: 14px 22px;
+            border-radius: 30px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            color: #ffffff;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Modale de renommage */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-highlight);
+            border-radius: 10px;
+            width: 440px;
+            padding: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+        }
+
+        .modal-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 6px;
+        }
+
+        .modal-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .modal-input {
+            width: 100%;
+            background: var(--bg-surface-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 13px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            outline: none;
+            margin-bottom: 18px;
+        }
+
+        .modal-input:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .modal-btn {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .modal-btn-cancel {
+            background: var(--bg-surface-elevated);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .modal-btn-cancel:hover {
+            color: #ffffff;
+            background: #252833;
+        }
+
+        .modal-btn-confirm {
+            background: var(--accent-blue);
+            color: #ffffff;
+        }
+
+        .modal-btn-confirm:hover {
+            background: var(--accent-blue-hover);
+        }
+
+        .header-materials-btn {
+            background: #1e212b;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #e2e8f0;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 5px 9px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .header-materials-btn:hover {
+            background: #2b3040;
+            border-color: #3b82f6;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Barre latérale Studio PBR -->
+    <aside id="sidebar">
+        <!-- Header -->
+        <div class="studio-header">
+            <div class="studio-title-group">
+                <div class="studio-logo">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 22 8.5 12 15 2 8.5 12 2" fill="rgba(59,130,246,0.3)" stroke="#3b82f6"/>
+                        <polygon points="2 8.5 12 15 12 22 2 15.5 2 8.5" fill="rgba(31,63,150,0.3)" stroke="#2563eb"/>
+                        <polygon points="12 15 22 8.5 22 15.5 12 22 12 15" fill="rgba(37,78,184,0.3)" stroke="#1d4ed8"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="studio-title">ARCH<span>·</span>PBR</h1>
+                    <div class="studio-subtitle">STUDIO VISUALIZER v2.0</div>
+                </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <div id="catalogTotalBadge" class="catalog-badge">0 MATS</div>
+                <button id="btnHeaderOpenFolder" class="header-materials-btn" title="Open materials folder in File Explorer" onclick="fetch('/api/open-folder').catch(e => console.error(e))">📁 Folder</button>
+            </div>
+        </div>
+
+        <!-- Zone d'importation de dossier de matériau -->
+        <div class="dropzone-container">
+            <div class="dropzone" id="dropzone" title="Drag & drop a folder or textures, or use buttons">
+                <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                    <line x1="12" y1="11" x2="12" y2="17"/>
+                    <line x1="9" y1="14" x2="15" y2="14"/>
+                </svg>
+                <div class="dropzone-title">IMPORT FOLDER OR TEXTURES</div>
+                <div class="dropzone-sub">Drop folder / texture maps or click below</div>
+                <div class="dropzone-cat-select" onclick="event.stopPropagation()">
+                    <span>TARGET CATEGORY:</span>
+                    <select id="uploadCategorySelect" class="cat-dropdown">
+                        <option value="Brick">Brick</option>
+                        <option value="Ceramic">Ceramic</option>
+                        <option value="Concrete">Concrete</option>
+                        <option value="Fabric">Fabric</option>
+                        <option value="Leather">Leather</option>
+                        <option value="Metal">Metal</option>
+                        <option value="Nature">Nature</option>
+                        <option value="Others">Others</option>
+                        <option value="Paint">Paint</option>
+                        <option value="Plaster">Plaster</option>
+                        <option value="Plastic">Plastic</option>
+                        <option value="Stone">Stone</option>
+                        <option value="Wood">Wood</option>
+                    </select>
+                </div>
+                <div class="dropzone-actions" onclick="event.stopPropagation()">
+                    <button type="button" class="dropzone-btn" id="btnPickFolder" title="Select complete PBR texture folder">📁 Browse Folder</button>
+                    <button type="button" class="dropzone-btn" id="btnPickFiles" title="Select individual texture maps">🖼️ Browse Files</button>
+                </div>
+            </div>
+            <!-- Inputs de sélection native placés hors du conteneur dropzone -->
+            <input type="file" id="folderInputHidden" webkitdirectory directory style="position:fixed; top:-9999px; left:-9999px; width:1px; height:1px; opacity:0.001; pointer-events:none;">
+            <input type="file" id="fileInputHidden" multiple accept=".png,.jpg,.jpeg,.webp,.exr,.tif,.tiff,.bmp" style="position:fixed; top:-9999px; left:-9999px; width:1px; height:1px; opacity:0.001; pointer-events:none;">
+            <input type="file" id="modelInputHidden" accept=".glb,.gltf,.obj,.stl" style="position:fixed; top:-9999px; left:-9999px; width:1px; height:1px; opacity:0.001; pointer-events:none;">
+            <div id="uploadFeedback" class="upload-feedback"></div>
+        </div>
+
+        <!-- Filtre & Recherche -->
+        <div class="filter-section">
+            <div class="search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input type="text" id="searchInput" class="search-input" placeholder="Search materials...">
+                <button id="searchClearBtn" class="search-clear">&times;</button>
+            </div>
+            <div class="category-scroll" id="categoryPillBar"></div>
+        </div>
+
+        <!-- Liste des matériaux -->
+        <div id="catalog"></div>
+    </aside>
+
+    <!-- Zone de rendu 3D -->
+    <main id="viewport-container">
+        <!-- Barre flottante : Gabarits Géométriques -->
+        <div class="floating-toolbar">
+            <button class="geom-btn active" data-geom="sphere">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/></svg>
+                UV Sphere
+            </button>
+            <button class="geom-btn" data-geom="cube">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                Cube
+            </button>
+            <button class="geom-btn" data-geom="slab">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polygon points="2 17 12 22 22 17 12 12 2 17"/></svg>
+                Flat Slab
+            </button>
+            <button class="geom-btn" data-geom="diorama">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 21h18M3 21V3M3 21l8-8M21 21V9l-10 4"/></svg>
+                Architectural Diorama
+            </button>
+            <button class="geom-btn" data-geom="custom" id="btnCustomGeom" title="Test material on your custom 3D model (GLB, OBJ, STL)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                Custom 3D Model
+            </button>
+        </div>
+
+        <!-- HUD Inspecteur du matériau actif -->
+        <div class="active-mat-hud" id="activeMatHud" style="display: none;">
+            <div class="hud-category" id="hudCategory">WOOD</div>
+            <div class="hud-name" id="hudName">wood_european_ash</div>
+            <div class="hud-maps" id="hudMaps">BC • NRM • RGH • MET • DISP</div>
+        </div>
+
+        <!-- Panneau de réglages HUD -->
+        <div class="floating-controls">
+            <div class="control-row">
+                <div class="control-label">
+                    UV TILING
+                    <span id="uvValueLabel">1x</span>
+                </div>
+                <div class="uv-presets">
+                    <button class="uv-btn active" data-uv="1">1x</button>
+                    <button class="uv-btn" data-uv="2">2x</button>
+                    <button class="uv-btn" data-uv="3">3x</button>
+                    <button class="uv-btn" data-uv="4">4x</button>
+                </div>
+            </div>
+
+            <div class="control-row">
+                <div class="control-label">
+                    3D DISPLACEMENT
+                    <span id="dispValueLabel">0.05</span>
+                </div>
+                <input type="range" id="dispSlider" class="slider-input" min="0" max="0.15" step="0.005" value="0.05">
+            </div>
+
+            <div class="hud-actions">
+                <button class="hud-action-btn" id="btnAutoRotate">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                    </svg>
+                    Turntable
+                </button>
+                <button class="hud-action-btn" id="btnResetCamera">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    Reset View
+                </button>
+            </div>
+        </div>
+
+        <!-- Loader overlay avec sécurité anti-blocage -->
+        <div class="viewport-loader" id="viewportLoader">
+            <div class="spinner"></div>
+            <span>Loading high-resolution textures...</span>
+        </div>
+    </main>
+
+    <!-- Modale de Renommage -->
+    <div class="modal-overlay" id="renameModal">
+        <div class="modal-card">
+            <h2 class="modal-title">Rename Material</h2>
+            <p class="modal-desc">
+                The folder and all associated textures will automatically be renamed to preserve uniform PBR naming.
+            </p>
+            <input type="text" id="renameInput" class="modal-input" placeholder="new_material_name">
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-cancel" id="renameCancelBtn">Cancel</button>
+                <button class="modal-btn modal-btn-confirm" id="renameConfirmBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Principal ES Module (100% Offline Local Three.js) -->
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+        import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+        window.THREE = THREE;
+        window.OrbitControls = OrbitControls;
+
+        // État global de l'application
+        let globalCatalog = {};
+        let activeCategoryFilter = 'ALL';
+        let currentActiveMaterial = null;
+        let currentGeometryType = 'sphere';
+        let currentUvRepeat = 1.0;
+        let currentDisplacementScale = 0.05;
+        let isAutoRotating = false;
+        let loadSafetyTimer = null;
+        let customLoadedMesh = null;
+
+        // Éléments DOM
+        const container = document.getElementById('viewport-container');
+        const catalogContainer = document.getElementById('catalog');
+        const categoryPillBar = document.getElementById('categoryPillBar');
+        const uploadCategorySelect = document.getElementById('uploadCategorySelect');
+        const searchInput = document.getElementById('searchInput');
+        const searchClearBtn = document.getElementById('searchClearBtn');
+        const catalogTotalBadge = document.getElementById('catalogTotalBadge');
+        const viewportLoader = document.getElementById('viewportLoader');
+        const dropzone = document.getElementById('dropzone');
+        const folderInputHidden = document.getElementById('folderInputHidden');
+        const fileInputHidden = document.getElementById('fileInputHidden');
+        const modelInputHidden = document.getElementById('modelInputHidden');
+        const btnPickFolder = document.getElementById('btnPickFolder');
+        const btnPickFiles = document.getElementById('btnPickFiles');
+        const uploadFeedback = document.getElementById('uploadFeedback');
+        const activeMatHud = document.getElementById('activeMatHud');
+        const hudCategory = document.getElementById('hudCategory');
+        const hudName = document.getElementById('hudName');
+        const hudMaps = document.getElementById('hudMaps');
+        const uvValueLabel = document.getElementById('uvValueLabel');
+        const dispValueLabel = document.getElementById('dispValueLabel');
+        const dispSlider = document.getElementById('dispSlider');
+        const btnAutoRotate = document.getElementById('btnAutoRotate');
+        const btnResetCamera = document.getElementById('btnResetCamera');
+        const renameModal = document.getElementById('renameModal');
+        const renameInput = document.getElementById('renameInput');
+        const renameCancelBtn = document.getElementById('renameCancelBtn');
+        const renameConfirmBtn = document.getElementById('renameConfirmBtn');
+
+        let renameTarget = { category: '', oldName: '' };
+
+        // -------------------------------------------------------------
+        // VARIABLES MOTEUR THREE.JS & RENDU (ISOLATION ANTI-CRASH)
+        // -------------------------------------------------------------
+        let scene = null;
+        let camera = null;
+        let renderer = null;
+        let controls = null;
+        let ground = null;
+        let currentObjectGroup = null;
+        let maxAnisotropy = 4;
+        let loadingManager = null;
+        let textureLoader = null;
+        let activeLoadedTextures = [];
+        let currentPbrMaterial = null;
+
+        function showLoader() {
+            if (viewportLoader) viewportLoader.style.display = 'flex';
+            if (loadSafetyTimer) clearTimeout(loadSafetyTimer);
+            // Sécurité anti-blocage : masque impérativement le loader après 800ms
+            loadSafetyTimer = setTimeout(hideLoader, 800);
+        }
+
+        function hideLoader() {
+            if (viewportLoader) viewportLoader.style.display = 'none';
+            if (loadSafetyTimer) clearTimeout(loadSafetyTimer);
+        }
+
+        // Initialisation isolée du moteur WebGL 3D (anti-crash)
+        function init3DEngine() {
+            try {
+                if (typeof THREE === 'undefined') {
+                    console.warn('[Material Library] Three.js n\'est pas encore disponible.');
+                    return false;
+                }
+
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color(0x0e0f11);
+                scene.fog = new THREE.FogExp2(0x0e0f11, 0.038);
+
+                const width = container ? (container.clientWidth || window.innerWidth || 800) : 800;
+                const height = container ? (container.clientHeight || window.innerHeight || 600) : 600;
+
+                camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 100);
+                camera.position.set(2.8, 2.2, 3.2);
+
+                renderer = new THREE.WebGLRenderer({
+                    antialias: true,
+                    powerPreference: "high-performance"
+                });
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+                renderer.setSize(width, height);
+                if ('outputColorSpace' in renderer && THREE.SRGBColorSpace) {
+                    renderer.outputColorSpace = THREE.SRGBColorSpace;
+                } else if ('outputEncoding' in renderer && THREE.sRGBEncoding) {
+                    renderer.outputEncoding = THREE.sRGBEncoding;
+                }
+                renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                renderer.toneMappingExposure = 1.1;
+                renderer.shadowMap.enabled = true;
+                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+                if (container) {
+                    const prevCanvas = container.querySelector('canvas');
+                    if (prevCanvas) prevCanvas.remove();
+                    container.appendChild(renderer.domElement);
+                }
+
+                if (typeof OrbitControls !== 'undefined') {
+                    controls = new OrbitControls(camera, renderer.domElement);
+                    controls.enableDamping = true;
+                    controls.dampingFactor = 0.05;
+                    controls.target.set(0, 0.9, 0);
+                    controls.maxPolarAngle = Math.PI / 2 - 0.02;
+                    controls.minDistance = 1.0;
+                    controls.maxDistance = 12.0;
+                }
+
+                maxAnisotropy = renderer.capabilities ? renderer.capabilities.getMaxAnisotropy() : 4;
+
+                loadingManager = new THREE.LoadingManager();
+                loadingManager.onStart = () => {
+                    showLoader();
+                };
+                loadingManager.onLoad = () => {
+                    hideLoader();
+                };
+                loadingManager.onError = (url) => {
+                    console.warn('Erreur chargement texture:', url);
+                    hideLoader();
+                };
+
+                textureLoader = new THREE.TextureLoader(loadingManager);
+
+                // Éclairage réaliste studio d'architecture
+                const mainSunLight = new THREE.DirectionalLight(0xfff8ee, 1.8);
+                mainSunLight.position.set(5.5, 9.0, 6.0);
+                mainSunLight.castShadow = true;
+                mainSunLight.shadow.mapSize.width = 2048;
+                mainSunLight.shadow.mapSize.height = 2048;
+                mainSunLight.shadow.camera.near = 0.5;
+                mainSunLight.shadow.camera.far = 25;
+                mainSunLight.shadow.camera.left = -3.5;
+                mainSunLight.shadow.camera.right = 3.5;
+                mainSunLight.shadow.camera.top = 3.5;
+                mainSunLight.shadow.camera.bottom = -3.5;
+                mainSunLight.shadow.bias = -0.00015;
+                mainSunLight.shadow.radius = 2.4;
+                scene.add(mainSunLight);
+
+                const hemiLight = new THREE.HemisphereLight(0xe4edfa, 0x181a20, 0.7);
+                hemiLight.position.set(0, 15, 0);
+                scene.add(hemiLight);
+
+                const fillLight = new THREE.DirectionalLight(0x7ea0cc, 0.35);
+                fillLight.position.set(-5, 4, -4);
+                scene.add(fillLight);
+
+                // Sol neutre horizontal recevant les ombres
+                const groundGeo = new THREE.PlaneGeometry(35, 35);
+                const groundMat = new THREE.MeshStandardMaterial({
+                    color: 0x121418,
+                    roughness: 0.92,
+                    metalness: 0.05
+                });
+                ground = new THREE.Mesh(groundGeo, groundMat);
+                ground.rotation.x = -Math.PI / 2;
+                ground.position.y = 0;
+                ground.receiveShadow = true;
+                scene.add(ground);
+
+                // Groupe pour l'objet 3D actif
+                currentObjectGroup = new THREE.Group();
+                scene.add(currentObjectGroup);
+
+                if (!animFrameId) {
+                    animate();
+                }
+
+                return true;
+            } catch (err) {
+                console.warn('[Material Library] WebGL / 3D Init Warning/Delay (l\'UI reste 100% active):', err);
+                hideLoader();
+                return false;
+            }
+        }
+
+        // -------------------------------------------------------------
+        // DÉPLIAGE UV PROPORTIONNEL & CONSTRUCTEURS GÉOMÉTRIQUES RÉALISTES
+        // -------------------------------------------------------------
+        // Génère des coordonnées UV strictement proportionnelles aux dimensions réelles
+        // afin d'éliminer tout étirement ou écrasement de texture sur les chants et arêtes.
+        function createBoxWithProportionalUV(width, height, depth, ws = 32, hs = 32, ds = 32, baseScale = null) {
+            const geo = new THREE.BoxGeometry(width, height, depth, ws, hs, ds);
+            const pos = geo.attributes.position;
+            const norm = geo.attributes.normal;
+            const uv = geo.attributes.uv;
+            const count = pos.count;
+
+            const scale = baseScale || Math.max(width, depth);
+            const halfW = width / 2;
+            const halfH = height / 2;
+            const halfD = depth / 2;
+
+            for (let i = 0; i < count; i++) {
+                const x = pos.getX(i);
+                const y = pos.getY(i);
+                const z = pos.getZ(i);
+
+                const nx = norm.getX(i);
+                const ny = norm.getY(i);
+                const nz = norm.getZ(i);
+
+                let u = 0;
+                let v = 0;
+
+                if (ny > 0.5) {
+                    // Face supérieure (+Y, Sol / Dalle)
+                    u = (x + halfW) / scale;
+                    v = (halfD - z) / scale;
+                } else if (ny < -0.5) {
+                    // Face inférieure (-Y)
+                    u = (x + halfW) / scale;
+                    v = (z + halfD) / scale;
+                } else if (nz > 0.5) {
+                    // Face avant (+Z)
+                    u = (x + halfW) / scale;
+                    v = (y + halfH) / scale;
+                } else if (nz < -0.5) {
+                    // Face arrière (-Z)
+                    u = (halfW - x) / scale;
+                    v = (y + halfH) / scale;
+                } else if (nx > 0.5) {
+                    // Face droite / intérieure (+X, vue du diorama)
+                    u = (z + halfD) / scale;
+                    v = (y + halfH) / scale;
+                } else if (nx < -0.5) {
+                    // Face gauche / extérieure (-X)
+                    u = (halfD - z) / scale;
+                    v = (y + halfH) / scale;
+                }
+
+                uv.setXY(i, u, v);
+            }
+
+            uv.needsUpdate = true;
+            geo.setAttribute('uv2', uv.clone());
+            return geo;
+        }
+
+        function createGeometryMesh(type, material) {
+            const group = new THREE.Group();
+
+            if (type === 'sphere') {
+                const geo = new THREE.SphereGeometry(1.0, 96, 96);
+                geo.setAttribute('uv2', geo.attributes.uv.clone());
+
+                const mesh = new THREE.Mesh(geo, material);
+                mesh.position.y = 1.0;
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                group.add(mesh);
+            }
+            else if (type === 'cube') {
+                const geo = createBoxWithProportionalUV(1.5, 1.5, 1.5, 64, 64, 64, 1.5);
+
+                const mesh = new THREE.Mesh(geo, material);
+                mesh.position.y = 0.75;
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                group.add(mesh);
+            }
+            else if (type === 'slab') {
+                // Dalle plane architecturale avec UV proportionnelles sans étirement sur la tranche
+                const slabW = 2.6;
+                const slabH = 0.12;
+                const slabD = 2.6;
+                const geo = createBoxWithProportionalUV(slabW, slabH, slabD, 64, 8, 64, slabW);
+
+                const mesh = new THREE.Mesh(geo, material);
+                mesh.position.y = slabH / 2;
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                group.add(mesh);
+            }
+            else if (type === 'diorama') {
+                // Diorama architectural : Sol continu + Murs d'angle continus (sans éléments parasites ni joints noirs)
+                const floorSize = 3.0;
+                const floorThick = 0.10;
+                const wallHeight = 2.4;
+                const wallThick = 0.14;
+                const baseScale = 3.0;
+
+                // 1. Dalle de sol
+                const floorGeo = createBoxWithProportionalUV(floorSize, floorThick, floorSize, 64, 4, 64, baseScale);
+                const floorMesh = new THREE.Mesh(floorGeo, material);
+                floorMesh.position.set(0, floorThick / 2, 0);
+                floorMesh.castShadow = true;
+                floorMesh.receiveShadow = true;
+                group.add(floorMesh);
+
+                // 2. Mur de fond (posé directement et proprement sur la dalle)
+                const backWallGeo = createBoxWithProportionalUV(floorSize, wallHeight, wallThick, 64, 64, 4, baseScale);
+                const backWall = new THREE.Mesh(backWallGeo, material);
+                const backWallZ = -floorSize / 2 + wallThick / 2;
+                backWall.position.set(0, floorThick + wallHeight / 2, backWallZ);
+                backWall.castShadow = true;
+                backWall.receiveShadow = true;
+                group.add(backWall);
+
+                // 3. Mur latéral gauche (jointif à 90° sans interruption ni élément parasite)
+                const leftWallLength = floorSize - wallThick;
+                const leftWallGeo = createBoxWithProportionalUV(wallThick, wallHeight, leftWallLength, 4, 64, 64, baseScale);
+                const leftWall = new THREE.Mesh(leftWallGeo, material);
+                const leftWallX = -floorSize / 2 + wallThick / 2;
+                const leftWallZ = wallThick / 2;
+                leftWall.position.set(leftWallX, floorThick + wallHeight / 2, leftWallZ);
+                leftWall.castShadow = true;
+                leftWall.receiveShadow = true;
+                group.add(leftWall);
+            }
+            else if (type === 'custom') {
+                if (customLoadedMesh) {
+                    const cloned = customLoadedMesh.clone(true);
+                    cloned.traverse(child => {
+                        if (child.isMesh) {
+                            child.material = material;
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                        }
+                    });
+                    group.add(cloned);
+                } else {
+                    const geo = new THREE.SphereGeometry(1.0, 96, 96);
+                    geo.setAttribute('uv2', geo.attributes.uv.clone());
+                    const mesh = new THREE.Mesh(geo, material);
+                    mesh.position.y = 1.0;
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                    group.add(mesh);
+                }
+            }
+
+            return group;
+        }
+
+        // Chargement de texture avec filtrage anisotrope et répétition UV
+        function loadHighResTexture(url, isBaseColor = false) {
+            if (!textureLoader || typeof THREE === 'undefined') return null;
+            try {
+                const tex = textureLoader.load(url);
+                tex.anisotropy = maxAnisotropy;
+                tex.wrapS = THREE.RepeatWrapping;
+                tex.wrapT = THREE.RepeatWrapping;
+                tex.repeat.set(currentUvRepeat, currentUvRepeat);
+                if (isBaseColor) {
+                    if ('colorSpace' in tex && THREE.SRGBColorSpace) {
+                        tex.colorSpace = THREE.SRGBColorSpace;
+                    } else if ('encoding' in tex && THREE.sRGBEncoding) {
+                        tex.encoding = THREE.sRGBEncoding;
+                    }
+                } else {
+                    if ('colorSpace' in tex && THREE.NoColorSpace) {
+                        tex.colorSpace = THREE.NoColorSpace;
+                    } else if ('encoding' in tex && THREE.LinearEncoding) {
+                        tex.encoding = THREE.LinearEncoding;
+                    }
+                }
+                activeLoadedTextures.push(tex);
+                return tex;
+            } catch (err) {
+                console.warn('Erreur chargement texture map:', err);
+                return null;
+            }
+        }
+
+        // Application du matériau PBR sélectionné
+        function applyMaterialToScene(materialData) {
+            currentActiveMaterial = materialData;
+            showLoader();
+
+            try {
+                // Surligner la carte active dans le catalogue
+                document.querySelectorAll('.material-card').forEach(c => {
+                    c.classList.toggle('active-material', c.dataset.matName === materialData.name && c.dataset.matCategory === materialData.category);
+                });
+
+                // Mise à jour de l'Inspecteur HUD (indépendamment du statut WebGL)
+                if (activeMatHud) activeMatHud.style.display = 'block';
+                if (hudCategory) hudCategory.textContent = materialData.category || '';
+                if (hudName) hudName.textContent = materialData.name || '';
+
+                const texs = materialData.textures || {};
+                const availablePbr = [];
+                if (texs.baseColor) availablePbr.push('BC');
+                if (texs.normal) availablePbr.push('NRM');
+                if (texs.roughness) availablePbr.push('RGH');
+                if (texs.metallic) availablePbr.push('MET');
+                if (texs.height) availablePbr.push('DISP');
+                if (texs.ambientOcclusion) availablePbr.push('AO');
+
+                if (hudMaps) hudMaps.textContent = availablePbr.length > 0 ? availablePbr.join(' • ') : 'AUCUNE MAP';
+
+                if (!scene || typeof THREE === 'undefined') {
+                    // Si le moteur 3D est en cours de différé, l'UI du catalogue fonctionne quand même
+                    return;
+                }
+
+                // Libération des anciennes textures
+                activeLoadedTextures.forEach(t => {
+                    if (t && typeof t.dispose === 'function') t.dispose();
+                });
+                activeLoadedTextures = [];
+
+                // Construction du matériau PBR
+                const matOptions = {
+                    roughness: 0.85,
+                    metalness: 0.1,
+                    displacementScale: currentDisplacementScale,
+                    aoMapIntensity: 1.0
+                };
+
+                if (texs.baseColor) {
+                    const t = loadHighResTexture(texs.baseColor, true);
+                    if (t) matOptions.map = t;
+                }
+                if (texs.normal) {
+                    const t = loadHighResTexture(texs.normal, false);
+                    if (t) {
+                        matOptions.normalMap = t;
+                        matOptions.normalScale = new THREE.Vector2(1.0, 1.0);
+                    }
+                }
+                if (texs.roughness) {
+                    const t = loadHighResTexture(texs.roughness, false);
+                    if (t) {
+                        matOptions.roughnessMap = t;
+                        matOptions.roughness = 1.0;
+                    }
+                }
+                if (texs.metallic) {
+                    const t = loadHighResTexture(texs.metallic, false);
+                    if (t) {
+                        matOptions.metalnessMap = t;
+                        matOptions.metalness = 1.0;
+                    }
+                }
+                if (texs.height) {
+                    const t = loadHighResTexture(texs.height, false);
+                    if (t) matOptions.displacementMap = t;
+                }
+                if (texs.ambientOcclusion) {
+                    const t = loadHighResTexture(texs.ambientOcclusion, false);
+                    if (t) matOptions.aoMap = t;
+                }
+
+                if (currentPbrMaterial) {
+                    ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'displacementMap', 'aoMap'].forEach(m => {
+                        if (currentPbrMaterial[m] && typeof currentPbrMaterial[m].dispose === 'function') currentPbrMaterial[m].dispose();
+                    });
+                    if (typeof currentPbrMaterial.dispose === 'function') currentPbrMaterial.dispose();
+                }
+
+                currentPbrMaterial = new THREE.MeshStandardMaterial(matOptions);
+
+                // Reconstruction géométrique immédiate
+                rebuildActiveGeometry();
+            } catch (err) {
+                console.error('Erreur lors de l\'application du matériau:', err);
+            } finally {
+                setTimeout(hideLoader, 300);
+            }
+        }
+
+        function rebuildActiveGeometry() {
+            try {
+                if (!currentObjectGroup || !scene || typeof THREE === 'undefined') return;
+                while (currentObjectGroup.children.length > 0) {
+                    const child = currentObjectGroup.children[0];
+                    currentObjectGroup.remove(child);
+                    if (currentGeometryType !== 'custom') {
+                        child.traverse(obj => {
+                            if (obj.geometry && typeof obj.geometry.dispose === 'function') obj.geometry.dispose();
+                        });
+                    }
+                }
+
+                const activeMaterial = currentPbrMaterial || new THREE.MeshStandardMaterial({
+                    color: 0x888888,
+                    roughness: 0.5,
+                    metalness: 0.2
+                });
+
+                const newObject = createGeometryMesh(currentGeometryType, activeMaterial);
+                currentObjectGroup.add(newObject);
+
+                if (controls) {
+                    if (currentGeometryType === 'diorama') {
+                        controls.target.set(0, 1.2, 0);
+                    } else if (currentGeometryType === 'slab') {
+                        controls.target.set(0, 0.15, 0);
+                    } else if (currentGeometryType === 'cube') {
+                        controls.target.set(0, 0.75, 0);
+                    } else {
+                        controls.target.set(0, 1.0, 0);
+                    }
+                    controls.update();
+                }
+            } catch (e) {
+                console.error('Erreur rebuildActiveGeometry:', e);
+            }
+        }
+
+        // -------------------------------------------------------------
+        // GESTION DU CATALOGUE & UI DE LA BARRE LATÉRALE
+        // -------------------------------------------------------------
+        async function fetchCatalog() {
+            try {
+                const res = await fetch('/api/materials');
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                globalCatalog = await res.json();
+            } catch (err) {
+                console.error('Erreur chargement catalogue:', err);
+                if (!globalCatalog || typeof globalCatalog !== 'object') {
+                    globalCatalog = {};
+                }
+            } finally {
+                renderCategoryPills();
+                renderCatalog();
+            }
+        }
+
+        function renderCategoryPills() {
+            const categories = Object.keys(globalCatalog).sort();
+            categoryPillBar.innerHTML = '';
+            uploadCategorySelect.innerHTML = '';
+
+            let totalCount = 0;
+            categories.forEach(cat => {
+                const list = Array.isArray(globalCatalog[cat]) ? globalCatalog[cat] : [];
+                totalCount += list.length;
+            });
+            catalogTotalBadge.textContent = `${totalCount} MATS`;
+
+            const allPill = document.createElement('div');
+            allPill.className = `cat-pill ${activeCategoryFilter === 'ALL' ? 'active' : ''}`;
+            allPill.textContent = `TOUS (${totalCount})`;
+            allPill.addEventListener('click', () => {
+                console.log('Bouton cliqué : [Material Library] Filtre catégorie : TOUS');
+                activeCategoryFilter = 'ALL';
+                renderCategoryPills();
+                renderCatalog();
+            });
+            categoryPillBar.appendChild(allPill);
+
+            categories.forEach(cat => {
+                const count = Array.isArray(globalCatalog[cat]) ? globalCatalog[cat].length : 0;
+                const pill = document.createElement('div');
+                pill.className = `cat-pill ${activeCategoryFilter === cat ? 'active' : ''}`;
+                pill.textContent = `${cat} (${count})`;
+                pill.addEventListener('click', () => {
+                    console.log(`Bouton cliqué : [Material Library] Filtre catégorie : ${cat}`);
+                    activeCategoryFilter = cat;
+                    renderCategoryPills();
+                    renderCatalog();
+                });
+                categoryPillBar.appendChild(pill);
+
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat;
+            });
+
+            const standardCats = ['Brick', 'Ceramic', 'Concrete', 'Fabric', 'Leather', 'Metal', 'Nature', 'Others', 'Paint', 'Plaster', 'Plastic', 'Stone', 'Wood'];
+            standardCats.forEach(cat => {
+                if (!Array.from(uploadCategorySelect.options).some(o => o.value === cat)) {
+                    const opt = document.createElement('option');
+                    opt.value = cat;
+                    opt.textContent = cat;
+                    uploadCategorySelect.appendChild(opt);
+                }
+            });
+
+            if (activeCategoryFilter !== 'ALL' && Array.from(uploadCategorySelect.options).some(o => o.value === activeCategoryFilter)) {
+                uploadCategorySelect.value = activeCategoryFilter;
+            } else if (!uploadCategorySelect.value && uploadCategorySelect.options.length > 0) {
+                uploadCategorySelect.value = uploadCategorySelect.options[0].value;
+            }
+        }
+
+        function renderCatalog() {
+            catalogContainer.innerHTML = '';
+            const searchKeyword = searchInput.value.trim().toLowerCase();
+            const categories = Object.keys(globalCatalog).sort();
+
+            let matchesCount = 0;
+
+            for (const cat of categories) {
+                if (activeCategoryFilter !== 'ALL' && activeCategoryFilter !== cat) continue;
+
+                let materials = Array.isArray(globalCatalog[cat]) ? globalCatalog[cat] : [];
+                if (searchKeyword) {
+                    materials = materials.filter(m => m.name.toLowerCase().includes(searchKeyword));
+                }
+
+                if (materials.length === 0) continue;
+
+                const groupHeader = document.createElement('div');
+                groupHeader.className = 'category-group-header';
+                groupHeader.innerHTML = `<span>${cat}</span><span class="category-count">${materials.length}</span>`;
+                catalogContainer.appendChild(groupHeader);
+
+                materials.forEach(mat => {
+                    matchesCount++;
+                    const card = document.createElement('div');
+                    card.className = 'material-card';
+                    card.dataset.matName = mat.name;
+                    card.dataset.matCategory = mat.category;
+                    card.style.cursor = 'pointer';
+
+                    card.addEventListener('click', () => {
+                        console.log('Action déclenchée');
+                        console.log(`Sélection carte matériau : '${mat.name}' (${mat.category})`);
+                        applyMaterialToScene(mat);
+                    });
+
+                    if (currentActiveMaterial && currentActiveMaterial.name === mat.name && currentActiveMaterial.category === mat.category) {
+                        card.classList.add('active-material');
+                    }
+
+                    const thumbBox = document.createElement('div');
+                    thumbBox.className = 'thumb-box';
+
+                    if (mat.thumbnail) {
+                        const img = document.createElement('img');
+                        img.className = 'thumb-img';
+                        img.src = mat.thumbnail;
+                        img.loading = 'lazy';
+                        img.alt = mat.name;
+                        img.onerror = () => {
+                            thumbBox.innerHTML = '<span class="thumb-fallback">PBR</span>';
+                        };
+                        thumbBox.appendChild(img);
+                    } else {
+                        thumbBox.innerHTML = '<span class="thumb-fallback">PBR</span>';
+                    }
+
+                    const info = document.createElement('div');
+                    info.className = 'material-info';
+
+                    const title = document.createElement('div');
+                    title.className = 'material-title';
+                    title.textContent = mat.name;
+                    title.title = mat.name;
+
+                    const tags = document.createElement('div');
+                    tags.className = 'channel-tags';
+
+                    const texs = mat.textures || {};
+                    if (texs.baseColor) tags.innerHTML += '<span class="chan-tag bc">BC</span>';
+                    if (texs.normal) tags.innerHTML += '<span class="chan-tag nrm">NRM</span>';
+                    if (texs.roughness) tags.innerHTML += '<span class="chan-tag rgh">RGH</span>';
+                    if (texs.metallic) tags.innerHTML += '<span class="chan-tag met">MET</span>';
+                    if (texs.height) tags.innerHTML += '<span class="chan-tag disp">DISP</span>';
+                    if (texs.ambientOcclusion) tags.innerHTML += '<span class="chan-tag ao">AO</span>';
+
+                    const btnRow = document.createElement('div');
+                    btnRow.className = 'btn-row';
+
+                    const btnView = document.createElement('button');
+                    btnView.className = 'card-btn btn-view';
+                    btnView.textContent = 'View';
+                    btnView.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        console.log(`Bouton cliqué : [Material Library] Voir matériau '${mat.name}' (${mat.category})`);
+                        applyMaterialToScene(mat);
+                    });
+
+                    const btnRename = document.createElement('button');
+                    btnRename.className = 'card-btn btn-rename';
+                    btnRename.textContent = 'Rename';
+                    btnRename.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        console.log(`Bouton cliqué : [Material Library] Renommer matériau '${mat.name}' (${mat.category})`);
+                        openRenameModal(mat.category, mat.name);
+                    });
+
+                    const btnFolder = document.createElement('button');
+                    btnFolder.className = 'card-btn btn-folder';
+                    btnFolder.textContent = 'Folder';
+                    btnFolder.title = 'Open folder in File Explorer';
+                    btnFolder.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        console.log(`Bouton cliqué : [Material Library] Ouvrir dossier matériau '${mat.name}' (${mat.category})`);
+                        openLocalFolder(mat.category, mat.name);
+                    });
+
+                    btnRow.appendChild(btnView);
+                    btnRow.appendChild(btnRename);
+                    btnRow.appendChild(btnFolder);
+
+                    info.appendChild(title);
+                    info.appendChild(tags);
+                    info.appendChild(btnRow);
+
+                    card.appendChild(thumbBox);
+                    card.appendChild(info);
+                    catalogContainer.appendChild(card);
+                });
+            }
+
+            if (matchesCount === 0) {
+                const emptyMsg = document.createElement('div');
+                emptyMsg.style.cssText = 'padding: 30px 16px; text-align: center; color: var(--text-muted); font-size: 13px;';
+                emptyMsg.innerHTML = `
+                    <div style="margin-bottom: 10px; font-weight: 600; color: var(--text-secondary); font-size: 14px;">Aucun matériau trouvé</div>
+                    <div style="margin-bottom: 16px; font-size: 12px; line-height: 1.5; color: var(--text-muted);">Importez un dossier de textures PBR pour enrichir votre bibliothèque.</div>
+                    <button class="tool-btn" id="emptyStatePickFolder" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin: 0 auto; padding: 9px 18px; background: var(--accent-blue); color: #fff; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                        Importer un dossier PBR
+                    </button>
+                `;
+                catalogContainer.appendChild(emptyMsg);
+                const emptyBtn = emptyMsg.querySelector('#emptyStatePickFolder');
+                if (emptyBtn) {
+                    emptyBtn.addEventListener('click', () => {
+                        console.log('Action déclenchée');
+                        pickFolder();
+                    });
+                }
+            }
+        }
+
+        // Ouvrir le dossier local dans Windows Explorer
+        function openLocalFolder(category, folder) {
+            fetch(`/api/open-folder?category=${encodeURIComponent(category)}&folder=${encodeURIComponent(folder)}`)
+                .catch(err => console.error('Erreur open-folder:', err));
+        }
+
+        // -------------------------------------------------------------
+        // MODALE DE RENOMMAGE
+        // -------------------------------------------------------------
+        function openRenameModal(category, oldName) {
+            renameTarget = { category, oldName };
+            renameInput.value = oldName;
+            renameModal.style.display = 'flex';
+            setTimeout(() => {
+                renameInput.focus();
+                renameInput.select();
+            }, 50);
+        }
+
+        function closeRenameModal() {
+            renameModal.style.display = 'none';
+        }
+
+        async function submitRename() {
+            const newName = renameInput.value.trim();
+            if (!newName || newName === renameTarget.oldName) {
+                closeRenameModal();
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/rename-material', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        category: renameTarget.category,
+                        oldName: renameTarget.oldName,
+                        newName: newName
+                    })
+                });
+
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    closeRenameModal();
+                    await fetchCatalog();
+
+                    if (currentActiveMaterial && currentActiveMaterial.name === renameTarget.oldName) {
+                        const updatedCat = globalCatalog[renameTarget.category];
+                        const updatedMat = updatedCat ? updatedCat.find(m => m.name === data.newName) : null;
+                        if (updatedMat) applyMaterialToScene(updatedMat);
+                    }
+                } else {
+                    alert(data.error || 'Erreur lors du renommage');
+                }
+            } catch (err) {
+                console.error('Erreur rename:', err);
+                alert('Network error while renaming material');
+            }
+        }
+
+        renameCancelBtn.addEventListener('click', closeRenameModal);
+        renameConfirmBtn.addEventListener('click', submitRename);
+        renameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') submitRename();
+            if (e.key === 'Escape') closeRenameModal();
+        });
+        renameModal.addEventListener('click', (e) => {
+            if (e.target === renameModal) closeRenameModal();
+        });
+
+        // -------------------------------------------------------------
+        // IMPORTATION DÉDIÉE PAR DOSSIER OU FICHIERS DE MATÉRIAU ET MODÈLES 3D
+        // -------------------------------------------------------------
+        let isUploading = false;
+
+        // Prévention globale du glisser-déposer sur la fenêtre pour éviter la navigation intempestive du navigateur
+        window.addEventListener('dragover', (e) => e.preventDefault());
+        window.addEventListener('drop', (e) => e.preventDefault());
+
+        // Chargement d'un modèle 3D personnalisé pour tester le matériau PBR
+        async function loadCustom3DModel(file) {
+            if (!file) return;
+            const name = file.name.toLowerCase();
+            showLoader();
+            try {
+                const buffer = await file.arrayBuffer();
+                let loadedObj = null;
+
+                if (name.endsWith('.glb') || name.endsWith('.gltf')) {
+                    const loader = new GLTFLoader();
+                    const gltf = await new Promise((res, rej) => {
+                        loader.parse(buffer, '', res, rej);
+                    });
+                    loadedObj = gltf.scene;
+                } else if (name.endsWith('.obj')) {
+                    const loader = new OBJLoader();
+                    const text = new TextDecoder().decode(buffer);
+                    loadedObj = loader.parse(text);
+                } else if (name.endsWith('.stl')) {
+                    const loader = new STLLoader();
+                    const geo = loader.parse(buffer);
+                    geo.computeVertexNormals();
+                    loadedObj = new THREE.Mesh(geo, currentPbrMaterial || new THREE.MeshStandardMaterial());
+                }
+
+                if (loadedObj) {
+                    // Calcul de la boîte englobante, centrage et normalisation d'échelle
+                    loadedObj.updateMatrixWorld(true);
+                    const box = new THREE.Box3().setFromObject(loadedObj);
+                    const size = box.getSize(new THREE.Vector3());
+                    const center = box.getCenter(new THREE.Vector3());
+                    const maxDim = Math.max(size.x, size.y, size.z, 0.001);
+                    const targetScale = 2.0 / maxDim;
+
+                    loadedObj.position.set(-center.x * targetScale, (-box.min.y) * targetScale, -center.z * targetScale);
+                    loadedObj.scale.setScalar(targetScale);
+
+                    const wrapper = new THREE.Group();
+                    wrapper.add(loadedObj);
+                    customLoadedMesh = wrapper;
+
+                    currentGeometryType = 'custom';
+                    document.querySelectorAll('.geom-btn').forEach(b => b.classList.remove('active'));
+                    const btnCustom = document.getElementById('btnCustomGeom');
+                    if (btnCustom) btnCustom.classList.add('active');
+
+                    rebuildActiveGeometry();
+                    resetCamera();
+
+                    uploadFeedback.style.display = 'block';
+                    uploadFeedback.style.color = '#34d399';
+                    uploadFeedback.textContent = `✓ Custom 3D Model '${file.name}' loaded for PBR preview!`;
+                    setTimeout(() => { uploadFeedback.style.display = 'none'; }, 4000);
+                }
+            } catch (err) {
+                console.error('Erreur chargement modèle 3D perso:', err);
+                uploadFeedback.style.display = 'block';
+                uploadFeedback.style.color = '#f87171';
+                uploadFeedback.textContent = `3D Model error: ${err.message}`;
+                setTimeout(() => { uploadFeedback.style.display = 'none'; }, 5000);
+            } finally {
+                hideLoader();
+            }
+        }
+
+        // Sécurité contre la propagation des clics natifs
+        if (folderInputHidden) folderInputHidden.addEventListener('click', (e) => e.stopPropagation());
+        if (fileInputHidden) fileInputHidden.addEventListener('click', (e) => e.stopPropagation());
+        if (modelInputHidden) modelInputHidden.addEventListener('click', (e) => e.stopPropagation());
+
+        if (folderInputHidden) {
+            folderInputHidden.addEventListener('change', () => {
+                if (folderInputHidden.files && folderInputHidden.files.length > 0) {
+                    const fileList = Array.from(folderInputHidden.files);
+                    let folderName = 'material_' + Date.now();
+                    if (fileList[0].webkitRelativePath) {
+                        folderName = fileList[0].webkitRelativePath.split(/[/\\]/)[0];
+                    }
+                    processFolderUpload(folderName, fileList);
+                }
+                folderInputHidden.value = '';
+            });
+        }
+
+        if (fileInputHidden) {
+            fileInputHidden.addEventListener('change', () => {
+                if (fileInputHidden.files && fileInputHidden.files.length > 0) {
+                    const fileList = Array.from(fileInputHidden.files);
+                    let matName = '';
+                    if (fileList.length > 0) {
+                        const first = fileList[0].name.replace(/\.[^.]+$/, '');
+                        matName = first.replace(/_(?:basecolor|albedo|diffuse|diff|color|normal|norm|roughness|rough|metallic|metalness|metal|height|displacement|disp|ambient[_\-\s]?occlusion|ao).*/i, '');
+                    }
+                    if (!matName) matName = 'material_' + Date.now();
+                    processFolderUpload(matName, fileList);
+                }
+                fileInputHidden.value = '';
+            });
+        }
+
+        if (modelInputHidden) {
+            modelInputHidden.addEventListener('change', () => {
+                if (modelInputHidden.files && modelInputHidden.files.length > 0) {
+                    loadCustom3DModel(modelInputHidden.files[0]);
+                }
+                modelInputHidden.value = '';
+            });
+        }
+
+        // Gestion unifiée du Drag-and-Drop pour la dropzone et pour le viewport 3D
+        [dropzone, container].forEach(el => {
+            if (!el) return;
+            ['dragenter', 'dragover'].forEach(eventName => {
+                el.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (dropzone && !isUploading) dropzone.classList.add('dragover');
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                el.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (dropzone) dropzone.classList.remove('dragover');
+                });
+            });
+
+            el.addEventListener('drop', (e) => handleDroppedItems(e));
+        });
+
+        // Lecture récursive des fichiers d'un dossier glissé-déposé
+        async function readFilesFromDirectoryEntry(dirEntry) {
+            const dirReader = dirEntry.createReader();
+            const entries = await new Promise((resolve) => {
+                const results = [];
+                function readBatch() {
+                    dirReader.readEntries((batch) => {
+                        if (batch.length === 0) {
+                            resolve(results);
+                        } else {
+                            results.push(...batch);
+                            readBatch();
+                        }
+                    }, () => resolve(results));
+                }
+                readBatch();
+            });
+
+            const files = [];
+            for (const entry of entries) {
+                if (entry.isFile) {
+                    const file = await new Promise(res => entry.file(res, () => res(null)));
+                    if (file) files.push(file);
+                } else if (entry.isDirectory) {
+                    const subFiles = await readFilesFromDirectoryEntry(entry);
+                    files.push(...subFiles);
+                }
+            }
+            return files;
+        }
+
+        async function handleDroppedItems(e) {
+            if (isUploading) return;
+            const dt = e.dataTransfer;
+            if (!dt) return;
+
+            uploadFeedback.style.display = 'block';
+            uploadFeedback.style.color = '#60a5fa';
+            uploadFeedback.textContent = 'Analyzing dropped files...';
+
+            try {
+                let folderName = null;
+                const collectedFiles = [];
+
+                if (dt.items && dt.items.length > 0) {
+                    for (let i = 0; i < dt.items.length; i++) {
+                        const item = dt.items[i];
+                        const entry = item.webkitGetAsEntry ? item.webkitGetAsEntry() : null;
+
+                        if (entry) {
+                            if (entry.isDirectory) {
+                                if (!folderName) folderName = entry.name;
+                                const sub = await readFilesFromDirectoryEntry(entry);
+                                collectedFiles.push(...sub);
+                            } else if (entry.isFile) {
+                                const f = await new Promise(res => entry.file(res, () => res(null)));
+                                if (f) collectedFiles.push(f);
+                            }
+                        } else if (item.kind === 'file') {
+                            const f = item.getAsFile();
+                            if (f) collectedFiles.push(f);
+                        }
+                    }
+                } else if (dt.files && dt.files.length > 0) {
+                    collectedFiles.push(...Array.from(dt.files));
+                }
+
+                if (collectedFiles.length === 0) {
+                    uploadFeedback.style.color = '#f87171';
+                    uploadFeedback.textContent = 'No valid files detected.';
+                    setTimeout(() => { uploadFeedback.style.display = 'none'; }, 4000);
+                    return;
+                }
+
+                // 1. Détecter si un modèle 3D a été déposé (GLB, GLTF, OBJ, STL)
+                const model3D = collectedFiles.find(f => {
+                    const n = f.name.toLowerCase();
+                    return n.endsWith('.glb') || n.endsWith('.gltf') || n.endsWith('.obj') || n.endsWith('.stl');
+                });
+                if (model3D) {
+                    await loadCustom3DModel(model3D);
+                    return;
+                }
+
+                // 2. Détecter si des textures ont été déposées
+                if (!folderName) {
+                    const first = collectedFiles[0].name.replace(/\.[^.]+$/, '');
+                    folderName = first.replace(/_(?:basecolor|albedo|diffuse|diff|color|normal|norm|roughness|rough|metallic|metalness|metal|height|displacement|disp|ambient[_\-\s]?occlusion|ao).*/i, '') || ('material_' + Date.now());
+                }
+
+                await processFolderUpload(folderName, collectedFiles);
+            } catch (err) {
+                console.error('[Dropzone Error]:', err);
+                uploadFeedback.style.color = '#f87171';
+                uploadFeedback.textContent = 'Error processing drag and drop.';
+                setTimeout(() => { uploadFeedback.style.display = 'none'; }, 4000);
+            }
+        }
+
+        // Téléversement sécurisé et non-bloquant
+        async function processFolderUpload(folderName, allFiles) {
+            if (isUploading) return;
+
+            const validExtensions = ['.png', '.jpg', '.jpeg', '.webp', '.tif', '.tiff', '.bmp', '.exr'];
+            const textureFiles = allFiles.filter(f => {
+                const name = f.name.toLowerCase();
+                return validExtensions.some(ext => name.endsWith(ext));
+            });
+
+            if (textureFiles.length === 0) {
+                uploadFeedback.style.display = 'block';
+                uploadFeedback.style.color = '#f87171';
+                uploadFeedback.textContent = `No valid image textures found for '${folderName}'.`;
+                setTimeout(() => { uploadFeedback.style.display = 'none'; }, 4000);
+                if (folderInputHidden) folderInputHidden.value = '';
+                if (fileInputHidden) fileInputHidden.value = '';
+                return;
+            }
+
+            isUploading = true;
+            if (dropzone) {
+                dropzone.style.opacity = '0.75';
+                dropzone.style.pointerEvents = 'none';
+            }
+
+            const category = (uploadCategorySelect && uploadCategorySelect.value) ? uploadCategorySelect.value : 'Others';
+            uploadFeedback.style.display = 'block';
+            uploadFeedback.style.color = '#60a5fa';
+            uploadFeedback.textContent = `Importation de '${folderName}' (${textureFiles.length} texture${textureFiles.length > 1 ? 's' : ''})...`;
+
+            const formData = new FormData();
+            formData.append('category', category);
+            formData.append('materialName', folderName);
+
+            textureFiles.forEach(f => {
+                formData.append('files', f, f.name);
+            });
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 90000);
+
+            try {
+                const res = await fetch('/api/upload-material', {
+                    method: 'POST',
+                    body: formData,
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                let data = null;
+                try {
+                    data = await res.json();
+                } catch (_) {
+                    data = { error: 'Réponse serveur invalide (' + res.status + ')' };
+                }
+
+                if (res.ok && data && data.success) {
+                    uploadFeedback.style.color = '#34d399';
+                    uploadFeedback.textContent = `✓ '${data.materialName}' imported successfully into '${category}'!`;
+                    await fetchCatalog();
+
+                    activeCategoryFilter = category;
+                    renderCategoryPills();
+                    renderCatalog();
+
+                    const matCat = globalCatalog[category];
+                    const newMat = matCat ? matCat.find(m => m.name === data.materialName) : null;
+                    if (newMat) {
+                        applyMaterialToScene(newMat);
+                    }
+                    setTimeout(() => { uploadFeedback.style.display = 'none'; }, 4000);
+                } else {
+                    uploadFeedback.style.color = '#f87171';
+                    uploadFeedback.textContent = `Error: ${(data && data.error) || 'Import failed'}`;
+                    setTimeout(() => { uploadFeedback.style.display = 'none'; }, 5000);
+                }
+            } catch (err) {
+                console.error('[Upload Error]:', err);
+                uploadFeedback.style.color = '#f87171';
+                uploadFeedback.textContent = (err.name === 'AbortError')
+                    ? 'Upload timed out after 90 seconds.'
+                    : 'Network error during import: ' + (err.message || 'connection failed');
+                setTimeout(() => { uploadFeedback.style.display = 'none'; }, 5000);
+            } finally {
+                clearTimeout(timeoutId);
+                isUploading = false;
+                if (dropzone) {
+                    dropzone.style.opacity = '1';
+                    dropzone.style.pointerEvents = 'auto';
+                }
+                if (folderInputHidden) folderInputHidden.value = '';
+                if (fileInputHidden) fileInputHidden.value = '';
+            }
+        }
+
+        // -------------------------------------------------------------
+        // INTERACTIONS BARRE D'OUTILS & HUD (CENTRALISÉES)
+        // -------------------------------------------------------------
+        function toggleAutoRotate() {
+            console.log('Action déclenchée');
+            isAutoRotating = !isAutoRotating;
+            if (btnAutoRotate) btnAutoRotate.classList.toggle('active', isAutoRotating);
+            if (controls) {
+                controls.autoRotate = isAutoRotating;
+                controls.autoRotateSpeed = 1.4;
+            }
+        }
+
+        function resetCamera() {
+            console.log('Action déclenchée');
+            if (camera) {
+                camera.position.set(2.8, 2.2, 3.2);
+            }
+            if (controls) {
+                if (currentGeometryType === 'diorama') {
+                    controls.target.set(0, 1.2, 0);
+                } else if (currentGeometryType === 'slab') {
+                    controls.target.set(0, 0.15, 0);
+                } else if (currentGeometryType === 'cube') {
+                    controls.target.set(0, 0.75, 0);
+                } else {
+                    controls.target.set(0, 1.0, 0);
+                }
+                controls.update();
+            }
+        }
+
+        async function pickFolder() {
+            console.log('Action déclenchée');
+            const desktop = window.archforgeDesktop || (window.parent && window.parent.archforgeDesktop);
+            if (desktop && typeof desktop.pickDirectory === 'function') {
+                try {
+                    const chosenDir = await desktop.pickDirectory();
+                    if (!chosenDir) return;
+                    
+                    const category = (uploadCategorySelect && uploadCategorySelect.value) ? uploadCategorySelect.value : 'Others';
+                    uploadFeedback.style.display = 'block';
+                    uploadFeedback.style.color = '#60a5fa';
+                    uploadFeedback.textContent = `Importing folder from '${chosenDir}'...`;
+                    
+                    const res = await fetch('/api/import-local-path', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            sourcePath: chosenDir,
+                            category: category
+                        })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.success) {
+                        uploadFeedback.style.color = '#34d399';
+                        uploadFeedback.textContent = `✓ '${data.materialName}' imported successfully into '${data.category}'!`;
+                        await fetchCatalog();
+                        activeCategoryFilter = data.category;
+                        renderCategoryPills();
+                        renderCatalog();
+                        const catList = globalCatalog[data.category];
+                        const newMat = catList ? catList.find(m => m.name === data.materialName) : null;
+                        if (newMat) applyMaterialToScene(newMat);
+                        setTimeout(() => { uploadFeedback.style.display = 'none'; }, 4000);
+                    } else {
+                        uploadFeedback.style.color = '#f87171';
+                        uploadFeedback.textContent = `Error: ${data.error || 'Import failed'}`;
+                        setTimeout(() => { uploadFeedback.style.display = 'none'; }, 5000);
+                    }
+                } catch (err) {
+                    console.warn('[Material Library] Native pickDirectory error:', err);
+                }
+            } else if (folderInputHidden) {
+                folderInputHidden.click();
+            }
+        }
+
+        async function pickFiles() {
+            console.log('Action déclenchée');
+            const desktop = window.archforgeDesktop || (window.parent && window.parent.archforgeDesktop);
+            if (desktop && typeof desktop.pickTextureFiles === 'function') {
+                try {
+                    const chosenFiles = await desktop.pickTextureFiles();
+                    if (!chosenFiles || !chosenFiles.length) return;
+                    
+                    const category = (uploadCategorySelect && uploadCategorySelect.value) ? uploadCategorySelect.value : 'Others';
+                    uploadFeedback.style.display = 'block';
+                    uploadFeedback.style.color = '#60a5fa';
+                    uploadFeedback.textContent = `Importing ${chosenFiles.length} texture files...`;
+                    
+                    const res = await fetch('/api/import-local-files', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            filePaths: chosenFiles,
+                            category: category
+                        })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.success) {
+                        uploadFeedback.style.color = '#34d399';
+                        uploadFeedback.textContent = `✓ '${data.materialName}' imported successfully into '${data.category}'!`;
+                        await fetchCatalog();
+                        activeCategoryFilter = data.category;
+                        renderCategoryPills();
+                        renderCatalog();
+                        const catList = globalCatalog[data.category];
+                        const newMat = catList ? catList.find(m => m.name === data.materialName) : null;
+                        if (newMat) applyMaterialToScene(newMat);
+                        setTimeout(() => { uploadFeedback.style.display = 'none'; }, 4000);
+                    } else {
+                        uploadFeedback.style.color = '#f87171';
+                        uploadFeedback.textContent = `Error: ${data.error || 'Import failed'}`;
+                        setTimeout(() => { uploadFeedback.style.display = 'none'; }, 5000);
+                    }
+                } catch (err) {
+                    console.warn('[Material Library] Native pickTextureFiles error:', err);
+                }
+            } else if (fileInputHidden) {
+                fileInputHidden.click();
+            }
+        }
+
+        function pickModel() {
+            console.log('Action déclenchée');
+            if (modelInputHidden) {
+                modelInputHidden.click();
+            }
+        }
+
+        // Fonction centralisée d'initialisation des écouteurs du module
+        function initModuleListeners() {
+            // 1. Boutons d'import & Dropzone (liaisons directes simples avec logging)
+            const pFolder = document.getElementById('btnPickFolder');
+            if (pFolder && !pFolder.dataset.libBound) {
+                pFolder.dataset.libBound = 'true';
+                pFolder.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    pickFolder();
+                });
+            }
+
+            const pFiles = document.getElementById('btnPickFiles');
+            if (pFiles && !pFiles.dataset.libBound) {
+                pFiles.dataset.libBound = 'true';
+                pFiles.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    pickFiles();
+                });
+            }
+
+            const dz = document.getElementById('dropzone');
+            if (dz && !dz.dataset.libBound) {
+                dz.dataset.libBound = 'true';
+                dz.addEventListener('click', (e) => {
+                    if (e.target.closest('#btnPickFolder') || e.target.closest('#btnPickFiles') || e.target.closest('.dropzone-cat-select')) {
+                        return;
+                    }
+                    pickFolder();
+                });
+            }
+
+            const bHeaderFolder = document.getElementById('btnHeaderOpenFolder');
+            if (bHeaderFolder && !bHeaderFolder.dataset.libBound) {
+                bHeaderFolder.dataset.libBound = 'true';
+                bHeaderFolder.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    console.log('Action déclenchée');
+                    const desktop = window.archforgeDesktop || (window.parent && window.parent.archforgeDesktop);
+                    if (desktop && typeof desktop.openMaterialsFolder === 'function') {
+                        desktop.openMaterialsFolder();
+                    } else {
+                        fetch('/api/open-folder').catch(err => console.error(err));
+                    }
+                });
+            }
+
+            // 2. Contrôles 3D
+            const bRotate = document.getElementById('btnAutoRotate');
+            if (bRotate && !bRotate.dataset.libBound) {
+                bRotate.dataset.libBound = 'true';
+                bRotate.addEventListener('click', () => {
+                    console.log('Action déclenchée');
+                    toggleAutoRotate();
+                });
+            }
+
+            const bReset = document.getElementById('btnResetCamera');
+            if (bReset && !bReset.dataset.libBound) {
+                bReset.dataset.libBound = 'true';
+                bReset.addEventListener('click', () => {
+                    console.log('Action déclenchée');
+                    resetCamera();
+                });
+            }
+
+            // 3. Sélecteurs de géométrie
+            document.querySelectorAll('.geom-btn').forEach(btn => {
+                if (!btn.dataset.libBound) {
+                    btn.dataset.libBound = 'true';
+                    btn.addEventListener('click', () => {
+                        console.log('Action déclenchée');
+                        if (btn.dataset.geom === 'custom' && !customLoadedMesh) {
+                            pickModel();
+                            return;
+                        }
+                        document.querySelectorAll('.geom-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        currentGeometryType = btn.dataset.geom;
+                        rebuildActiveGeometry();
+                    });
+                }
+            });
+
+            // 4. Répétition UV
+            document.querySelectorAll('.uv-btn').forEach(btn => {
+                if (!btn.dataset.libBound) {
+                    btn.dataset.libBound = 'true';
+                    btn.addEventListener('click', () => {
+                        console.log('Action déclenchée');
+                        document.querySelectorAll('.uv-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        currentUvRepeat = parseFloat(btn.dataset.uv);
+                        if (uvValueLabel) uvValueLabel.textContent = `${currentUvRepeat}x`;
+                        activeLoadedTextures.forEach(tex => {
+                            if (tex) {
+                                tex.repeat.set(currentUvRepeat, currentUvRepeat);
+                                tex.needsUpdate = true;
+                            }
+                        });
+                    });
+                }
+            });
+
+            // 5. Modale Renommage
+            const rCancel = document.getElementById('renameCancelBtn');
+            if (rCancel && !rCancel.dataset.libBound) {
+                rCancel.dataset.libBound = 'true';
+                rCancel.addEventListener('click', () => {
+                    console.log('Action déclenchée');
+                    closeRenameModal();
+                });
+            }
+
+            const rConfirm = document.getElementById('renameConfirmBtn');
+            if (rConfirm && !rConfirm.dataset.libBound) {
+                rConfirm.dataset.libBound = 'true';
+                rConfirm.addEventListener('click', () => {
+                    console.log('Action déclenchée');
+                    submitRename();
+                });
+            }
+
+            // 6. Curseur Displacement
+            const dSlider = document.getElementById('dispSlider');
+            if (dSlider && !dSlider.dataset.libBound) {
+                dSlider.dataset.libBound = 'true';
+                dSlider.addEventListener('input', (e) => {
+                    currentDisplacementScale = parseFloat(e.target.value);
+                    if (dispValueLabel) dispValueLabel.textContent = currentDisplacementScale.toFixed(3);
+                    if (currentPbrMaterial) {
+                        currentPbrMaterial.displacementScale = currentDisplacementScale;
+                        currentPbrMaterial.needsUpdate = true;
+                    }
+                });
+            }
+
+            // 7. Recherche
+            const sInput = document.getElementById('searchInput');
+            if (sInput && !sInput.dataset.libBound) {
+                sInput.dataset.libBound = 'true';
+                sInput.addEventListener('input', () => {
+                    if (searchClearBtn) searchClearBtn.style.display = sInput.value ? 'block' : 'none';
+                    renderCatalog();
+                });
+            }
+
+            const sClear = document.getElementById('searchClearBtn');
+            if (sClear && !sClear.dataset.libBound) {
+                sClear.dataset.libBound = 'true';
+                sClear.addEventListener('click', () => {
+                    console.log('Action déclenchée');
+                    if (searchInput) searchInput.value = '';
+                    sClear.style.display = 'none';
+                    renderCatalog();
+                });
+            }
+        }
+
+        // Redimensionnement de la fenêtre
+        window.addEventListener('resize', () => {
+            if (!container || !container.clientWidth || !container.clientHeight || !camera || !renderer) return;
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+
+        // -------------------------------------------------------------
+        // GPU LIFECYCLE & ARCHFORGE STUDIO HUB INTEGRATION
+        // -------------------------------------------------------------
+        let isWorkspaceActive = true;
+        let animFrameId = null;
+
+        function animate() {
+            if (!isWorkspaceActive) {
+                animFrameId = null;
+                return;
+            }
+            animFrameId = requestAnimationFrame(animate);
+            if (controls) controls.update();
+            if (renderer && scene && camera) {
+                renderer.render(scene, camera);
+            }
+        }
+        animate();
+
+        window.addEventListener('message', (event) => {
+            if (!event.data || typeof event.data !== 'object') return;
+            const { type } = event.data;
+
+            if (type === 'ARCHFORGE_SET_ACTIVE') {
+                isWorkspaceActive = !!event.data.active;
+                if (isWorkspaceActive) {
+                    initModuleListeners();
+                    if (!scene || !renderer) {
+                        init3DEngine();
+                        rebuildActiveGeometry();
+                    }
+                    if (!animFrameId) animate();
+                    window.dispatchEvent(new Event('resize'));
+                    if (Object.keys(globalCatalog).length === 0) {
+                        fetchCatalog();
+                    }
+                } else {
+                    if (animFrameId) {
+                        cancelAnimationFrame(animFrameId);
+                        animFrameId = null;
+                    }
+                }
+            }
+
+            if (type === 'ARCHFORGE_REINIT_LISTENERS') {
+                initModuleListeners();
+                if (Object.keys(globalCatalog).length === 0) {
+                    fetchCatalog();
+                }
+            }
+
+            if (type === 'ARCHFORGE_REFRESH_CATALOG') {
+                console.log('[Material Library] Refreshing catalog from Hub event...', event.data);
+                fetchCatalog().then(() => {
+                    initModuleListeners();
+                    if (event.data.category && event.data.materialName) {
+                        const cat = globalCatalog[event.data.category];
+                        if (cat) {
+                            const mat = cat.find(m => m.name === event.data.materialName);
+                            if (mat) applyMaterialToScene(mat);
+                        }
+                    }
+                });
+            }
+        });
+
+        // Signaler au Hub Studio que la frame est prête
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'ARCHFORGE_FRAME_READY' }, '*');
+        }
+
+        // Export global functions
+        window.initModuleListeners = initModuleListeners;
+        window.pickFolder = pickFolder;
+        window.pickFiles = pickFiles;
+        window.toggleAutoRotate = toggleAutoRotate;
+        window.resetCamera = resetCamera;
+        window.applyMaterialToScene = applyMaterialToScene;
+        window.fetchCatalog = fetchCatalog;
+
+        // Initialisation initiale dès que le DOM est complètement chargé
+        function startMaterialLibrary() {
+            // 1. Initialiser impérativement les écouteurs de module et l'interface utilisateur pour activer immédiatement les boutons "Browse Folder" et "Browse Files"
+            try {
+                initModuleListeners();
+            } catch (err) {
+                console.error('[Material Library] Erreur initModuleListeners:', err);
+            }
+
+            try {
+                renderCategoryPills();
+            } catch (err) {
+                console.error('[Material Library] Erreur renderCategoryPills:', err);
+            }
+
+            // 2. Chargement 3D isolé : si l'initialisation WebGL rencontre un délai ou un avertissement, fetchCatalog et initModuleListeners restent fonctionnels
+            try {
+                init3DEngine();
+                rebuildActiveGeometry();
+            } catch (err) {
+                console.warn('[Material Library] WebGL init warning/delay:', err);
+            }
+
+            // 3. fetchCatalog DOIT s'exécuter pour afficher immédiatement la liste des matériaux
+            fetchCatalog().then(() => {
+                try {
+                    let initialMaterial = null;
+                    for (const cat of Object.keys(globalCatalog)) {
+                        if (Array.isArray(globalCatalog[cat]) && globalCatalog[cat].length > 0) {
+                            initialMaterial = globalCatalog[cat][0];
+                            break;
+                        }
+                    }
+                    if (initialMaterial) {
+                        applyMaterialToScene(initialMaterial);
+                    }
+                } catch (e) {
+                    console.warn('[Material Library] Premier matériau non affiché:', e);
+                }
+            }).catch(err => {
+                console.error('[Material Library] Erreur fetchCatalog:', err);
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', startMaterialLibrary);
+        } else {
+            startMaterialLibrary();
+        }
+    </script>
+</body>
+</html>

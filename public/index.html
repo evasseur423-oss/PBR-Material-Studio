@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PBR Material Studio — Material Library & PBR Alchemist</title>
+  <meta name="description" content="Dedicated PBR Material Library and Photo-to-Seamless PBR Alchemist desktop suite.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="icon.png">
+</head>
+<body>
+
+  <!-- ========================================================================= -->
+  <!-- HEADER (MATERIAL LIBRARY + PBR ALCHEMIST NAVIGATION)                      -->
+  <!-- ========================================================================= -->
+  <header id="studio-header" class="studio-header">
+    
+    <!-- Branding -->
+    <div class="header-brand">
+      <div class="brand-badge-logo">
+        <img src="icon.png" alt="PBR Material Studio Logo" width="28" height="28" class="brand-img">
+      </div>
+      <div class="brand-text-group">
+        <h1 class="brand-name">PBR<span class="accent-glow">STUDIO</span></h1>
+        <span class="brand-sub">MATERIAL LIBRARY &amp; ALCHEMIST</span>
+      </div>
+      <span class="version-tag">v1.0</span>
+    </div>
+
+    <!-- 2-Workspace Navigation -->
+    <nav class="workspace-nav" id="workspaceNav" aria-label="Workspaces">
+      
+      <button class="nav-tab active" data-workspace="0" id="tab-0" title="Shortcut: Alt+1">
+        <span class="tab-index">01</span>
+        <span class="tab-icon">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7l8-4 8 4-8 4-8-4zM4 12l8 4 8-4M4 17l8 4 8-4"/></svg>
+        </span>
+        <span class="tab-label">Material Library</span>
+        <span class="tab-indicator"></span>
+      </button>
+
+      <button class="nav-tab" data-workspace="1" id="tab-1" title="Shortcut: Alt+2">
+        <span class="tab-index">02</span>
+        <span class="tab-icon">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 7h7l-5.5 4.5 2 7L12 16l-6.5 4.5 2-7L2 9h7z"/></svg>
+        </span>
+        <span class="tab-label">PBR Alchemist</span>
+        <span class="tab-indicator"></span>
+      </button>
+
+    </nav>
+
+    <!-- Header Actions & GPU Status -->
+    <div class="header-actions">
+      
+      <!-- GPU Lifecycle Indicator -->
+      <div class="gpu-status-pill" id="gpuStatusPill" title="WebGL lifecycle management: only active workspace consumes GPU resources">
+        <span class="gpu-pulse"></span>
+        <span class="gpu-text" id="gpuStatusText">GPU : [01. Material Library] active</span>
+      </div>
+
+      <!-- External Materials Folder Button -->
+      <button class="header-action-btn primary-action" id="btnOpenMaterialsDir" title="Open external Workspace_Materials folder in File Explorer">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        </svg>
+        <span>Materials Folder</span>
+      </button>
+
+      <!-- About & Help Modal Button -->
+      <button class="header-action-btn" id="btnOpenAbout" title="About PBR Material Studio & shortcuts">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+      </button>
+
+      <!-- Window Controls Divider -->
+      <div class="window-controls-divider" aria-hidden="true"></div>
+
+      <!-- Window Close Button -->
+      <button class="header-action-btn close-app-btn" id="btnCloseApp" title="Close application" aria-label="Close application">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+    </div>
+
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- CENTRAL VIEWPORT (MATERIAL LIBRARY & PBR ALCHEMIST)                       -->
+  <!-- ========================================================================= -->
+  <main id="stage-viewport" class="stage-viewport">
+    
+    <!-- Workspace 01: Material Library -->
+    <div class="workspace-container active" id="ws-container-0">
+      <iframe id="frame-0" src="/workspaces/material-library/index.html" class="workspace-frame" title="Material Library"></iframe>
+    </div>
+
+    <!-- Workspace 02: PBR Alchemist -->
+    <div class="workspace-container" id="ws-container-1">
+      <iframe id="frame-1" src="/workspaces/alchemist/index.html" class="workspace-frame" title="PBR Alchemist"></iframe>
+    </div>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- ABOUT / INFORMATION MODAL                                                 -->
+  <!-- ========================================================================= -->
+  <div class="modal-backdrop" id="aboutModal" hidden>
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-brand">
+          <img src="icon.png" alt="Icon" width="36" height="36">
+          <div>
+            <h3>PBR Material Studio</h3>
+            <span class="sub">Unified Material Library &amp; PBR Alchemist Suite</span>
+          </div>
+        </div>
+        <button class="modal-close" id="btnCloseAbout">&times;</button>
+      </div>
+
+      <div class="modal-content">
+        <div class="info-block">
+          <h4>🌟 2 Dedicated Workspaces</h4>
+          <ul class="module-bullets">
+            <li><strong>[01. Material Library]</strong>: Categorized PBR catalog &amp; viewer with automatic texture normalization (_baseColor, _normal, _roughness, _height, _ambientOcclusion, _metallic) and architectural 3D preview meshes.</li>
+            <li><strong>[02. PBR Alchemist]</strong>: Seamless photo-to-PBR generator (high-pass delighter + Sobel 3×3 normal filters) mathematically deriving 5 PBR texture maps with real-time 2D/3D preview.</li>
+          </ul>
+        </div>
+
+        <div class="info-block">
+          <h4>⚡ Optimizations &amp; Direct Bridge</h4>
+          <p>
+            • <strong>Strict GPU Lifecycle</strong>: Switching tabs automatically suspends the inactive WebGL loop to 0% GPU load.<br>
+            • <strong>PBR Alchemist ➔ Material Library Bridge</strong>: Direct one-click saving of generated PBR texture sets into external storage with instant catalog hot-reload.
+          </p>
+        </div>
+
+        <div class="info-block">
+          <h4>⌨️ Keyboard Shortcuts</h4>
+          <div class="shortcuts-grid">
+            <span class="kbd-key">Alt + 1</span><span>Material Library</span>
+            <span class="kbd-key">Alt + 2</span><span>PBR Alchemist</span>
+          </div>
+        </div>
+
+        <div class="info-footer-credits">
+          <span>Three.js <strong>v0.165.0</strong></span> • <span>Electron &amp; Express</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notifications Host -->
+  <div class="hub-toast-host" id="hubToastHost" aria-live="polite"></div>
+
+  <script src="hub.js"></script>
+</body>
+</html>

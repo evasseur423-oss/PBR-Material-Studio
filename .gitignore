@@ -1,0 +1,45 @@
+# Dépendances Node.js
+node_modules/
+**/node_modules/
+
+# Dossiers de build et de compilation
+dist/
+**/dist/
+out/
+**/out/
+build/
+**/build/
+
+# Exécutables et archives
+*.exe
+**/*.exe
+*.dmg
+**/*.dmg
+*.zip
+**/*.zip
+*.tar.gz
+**/*.tar.gz
+*.blockmap
+**/*.blockmap
+
+# Configuration locale et environnement
+.env
+.env.local
+.env.*
+**/.env
+**/.env.local
+**/.env.*
+
+# Caches et artéfacts OS
+.DS_Store
+**/.DS_Store
+Thumbs.db
+**/Thumbs.db
+ehthumbs.db
+
+# Fichiers temporaires et matériaux externes
+temp_uploads/
+Workspace_Materials/
+*.tmp
+*.log
+

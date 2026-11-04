@@ -1,0 +1,68 @@
+{
+  "name": "pbr-material-studio",
+  "productName": "PBR Material Studio",
+  "appId": "com.pbrmaterial.studio",
+  "version": "1.0.0",
+  "description": "PBR Material Studio — Material Library & PBR Alchemist Suite",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron main.js",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win --x64",
+    "server": "node server.js"
+  },
+  "keywords": [
+    "pbr",
+    "materials",
+    "textures",
+    "alchemist",
+    "seamless",
+    "threejs",
+    "electron"
+  ],
+  "author": "PBR Material Studio",
+  "license": "GPL-3.0-only",
+  "dependencies": {
+    "express": "^5.2.1",
+    "jszip": "^3.10.2",
+    "multer": "^2.4.0",
+    "three": "0.165.0"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.pbrmaterial.studio",
+    "productName": "PBR Material Studio",
+    "mac": {
+      "target": ["dmg", "zip"],
+      "category": "public.app-category.graphics-design"
+    },
+    "win": {
+      "target": [
+        "portable",
+        "nsis"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "PBR Material Studio"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}.exe"
+    },
+    "files": [
+      "**/*",
+      "!dist/**",
+      "!**/*.bat",
+      "!temp_uploads/**",
+      "!Workspace_Materials/**"
+    ]
+  }
+}
+
